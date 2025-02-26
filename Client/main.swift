@@ -8,10 +8,8 @@
 import WebDriver
 
 let driver = WebDriver.Firefox()
+    .headless()
 
 let session = try await driver.startSession()
 
-
 try await session.close()
-
-print(try await session.status())

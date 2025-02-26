@@ -24,7 +24,7 @@ public final class Session: @unchecked Sendable {
         self.sessionID = ""
         
         do {
-            let results = try await self.data(.post, "session", json: ["capabilities": driver.capabilities])
+            let results = try await self.data(.post, "session", json: ["capabilities": ["alwaysMatch" : driver.capabilities]])
             let parser = try JSONParser(data: results.0)
             self.sessionID = try parser.object("value")["sessionId"]
             
@@ -57,6 +57,12 @@ public final class Session: @unchecked Sendable {
         if let data {
             request.httpBody = data
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let logger = Logger(subsystem: "WebDriver", category: "Session Request")
+            if let object = try? JSONSerialization.jsonObject(with: data),
+               let stringData = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted]) {
+                logger.trace("\(String(data: stringData, encoding: .utf8)!)")
+            }
         }
         return request
     }
@@ -69,15 +75,19 @@ public final class Session: @unchecked Sendable {
         let request = self.makeRequest(method, uri, data: data)
         let (data, response) = try await self.session.data(for: request)
         
-        let logger = Logger(subsystem: "WebDriver", category: "Session Response")
+        let responseLogger = Logger(subsystem: "WebDriver", category: "Session Response: Info")
+        responseLogger.trace("\(response)")
+        
+        let logger = Logger(subsystem: "WebDriver", category: "Session Response: Body")
         let object = try JSONSerialization.jsonObject(with: data)
-        logger.trace("\(String(describing: object))")
+        let stringData = try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted])
+        logger.trace("\(String(data: stringData, encoding: .utf8)!)")
         
         guard let response = response as? HTTPURLResponse else { return (data, response) }
         
         
         switch response.statusCode {
-        case 500:
+        case 500, 400:
             let parser = try JSONParser(data: data).object("value")
             throw try ServerError(
                 code: response.statusCode,

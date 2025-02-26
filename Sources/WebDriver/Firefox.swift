@@ -49,10 +49,10 @@ public extension WebDriver.Firefox {
     internal func appendingFirefoxArg(arg: String) -> Self {
         var capabilities = self.capabilities // copy
         var firefoxCapabilities = capabilities["moz:firefoxOptions", default: [:]] as! [String : Any]
-        var args = firefoxCapabilities["ARGS", default: []] as! [String]
+        var args = firefoxCapabilities["args", default: []] as! [String]
         args.append(arg)
         
-        firefoxCapabilities["ARGS"] = args
+        firefoxCapabilities["args"] = args
         capabilities["moz:firefoxOptions"] = firefoxCapabilities
         
         return Self(_baseURL: self.baseURL, capabilities: capabilities)
