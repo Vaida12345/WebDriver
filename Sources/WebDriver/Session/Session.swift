@@ -15,7 +15,7 @@ import Essentials
 /// All interactions with the browser it controls are communicated via a session.
 ///
 /// To obtain a session, call the ``WebDriverProtocol/startSession()``. After you are finished with a session, close the session using ``close()``.
-public final class Session<Launcher: WebDriverLauncher>: @unchecked Sendable {
+public struct Session<Launcher: WebDriverLauncher>: @unchecked Sendable {
     
     /// The launcher that launched the backend for this session.
     ///
@@ -108,19 +108,6 @@ public final class Session<Launcher: WebDriverLauncher>: @unchecked Sendable {
         json: [String : Any]
     ) async throws -> (Data, URLResponse) {
         try await self.data(method, uri, data: JSONSerialization.data(withJSONObject: json))
-    }
-    
-    /// Close the connection.
-    public func close() async throws {
-        let _ = try await self.data(.delete, "session/\(sessionID)", data: nil)
-        self.launcher.stop()
-    }
-    
-    
-    public func status() async throws -> SessionStatus {
-        let request = try await self.data(.get, "status", data: nil)
-        
-        return try SessionStatus(parser: JSONParser(data: request.0))
     }
     
 }
