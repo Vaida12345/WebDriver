@@ -20,13 +20,13 @@ public struct Session<Launcher: WebDriverLauncher>: @unchecked Sendable {
     /// The launcher that launched the backend for this session.
     ///
     /// Through the launcher, the launch args, the backend url, and the service used can be obtained.
-    public let launcher: Launcher
+    internal let launcher: Launcher
     
     /// The shared url session for this instance. All connection will be transmitted through this session.
-    public let session: URLSession
+    internal let session: URLSession
     
     /// The session ID identified by the backend.
-    public private(set) var sessionID: String
+    internal var sessionID: String
     
     
     init(launcher: Launcher) async throws {
@@ -41,8 +41,6 @@ public struct Session<Launcher: WebDriverLauncher>: @unchecked Sendable {
         self.sessionID = try parser.object("value")["sessionId"]
         
         guard let value = String(data: results.0, encoding: .utf8) else { throw SessionError.connectionLost }
-        print(value)
-        print(results.1)
     }
     
     

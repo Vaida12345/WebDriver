@@ -24,4 +24,24 @@ public struct ServerError: GenericError {
     /// The stack trace provided by the server.
     public let stackTrace: String
     
+    
+    public func write(to stream: inout some TextOutputStream) {
+        if let title {
+            stream.write("\(title): \(message)")
+        } else {
+            stream.write(message)
+        }
+        
+        if !stackTrace.isEmpty {
+            stream.write("\n\tStack trace:\n")
+            stream.write(stackTrace)
+        }
+    }
+    
+    public var description: String {
+        var result = ""
+        self.write(to: &result)
+        return result
+    }
+    
 }

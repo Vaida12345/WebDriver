@@ -6,15 +6,55 @@
 //
 
 import Foundation
+import Essentials
 
 
 extension Session {
+    
+    public var url: URL {
+        get async throws {
+            try await self.get()
+        }
+    }
+    
+    public var title: String {
+        get async throws {
+            let (data, _) = try await self.data(.get, "session/\(sessionID)/title", data: nil)
+            return try JSONParser(data: data)["value"]
+        }
+    }
+    
     
     /// Navigation to the given url.
     public func open(url: URL) async throws {
         var json: [String : Any] = [:]
         json["url"] = url.absoluteString
-        let (data, response) = try await self.data(.post, "session/\(sessionID)/url", json: json)
+        let _ = try await self.data(.post, "session/\(sessionID)/url", json: json)
     }
+    
+    /// Gets the current URL.
+    public func get() async throws -> URL {
+        let (data, _) = try await self.data(.get, "session/\(sessionID)/url", data: nil)
+        let string = try JSONParser(data: data)["value"]
+        return URL(string: string)!
+    }
+    
+    
+    /// Go back.
+    public func back() async throws {
+        let _ = try await self.data(.post, "session/\(sessionID)/back", data: nil)
+    }
+    
+    /// Go forward.
+    public func forward() async throws {
+        let _ = try await self.data(.post, "session/\(sessionID)/forward", data: nil)
+    }
+    
+    /// Refresh.
+    public func refresh() async throws {
+        let _ = try await self.data(.post, "session/\(sessionID)/refresh", data: nil)
+    }
+    
+    
     
 }
