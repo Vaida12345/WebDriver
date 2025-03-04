@@ -6,6 +6,7 @@
 //
 
 
+/// The strategy used when loading webpages.
 public enum PageLoadStrategy: String {
     
     /// Waits for the entire page to load, including subresources like scripts and images.

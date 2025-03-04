@@ -7,14 +7,25 @@
 
 import Foundation
 import OSLog
+import Essentials
 
 
-public final class Session<Driver: WebDriverProtocol, Launcher: WebDriverLauncher>: @unchecked Sendable {
+/// A connection session.
+///
+/// All interactions with the browser it controls are communicated via a session.
+///
+/// To obtain a session, call the ``WebDriverProtocol/startSession()``. After you are finished with a session, close the session using ``close()``.
+public final class Session<Launcher: WebDriverLauncher>: @unchecked Sendable {
     
+    /// The launcher that launched the backend for this session.
+    ///
+    /// Through the launcher, the launch args, the backend url, and the service used can be obtained.
     public let launcher: Launcher
     
+    /// The shared url session for this instance. All connection will be transmitted through this session.
     public let session: URLSession
     
+    /// The session ID identified by the backend.
     public private(set) var sessionID: String
     
     
@@ -25,27 +36,13 @@ public final class Session<Driver: WebDriverProtocol, Launcher: WebDriverLaunche
         
         let driver = launcher.driver
         
-        do {
-            let results = try await self.data(.post, "session", json: ["capabilities": ["alwaysMatch" : driver.capabilities]])
-            let parser = try JSONParser(data: results.0)
-            self.sessionID = try parser.object("value")["sessionId"]
-            
-            guard let value = String(data: results.0, encoding: .utf8) else { throw SessionError.connectionLost }
-            print(value)
-            print(results.1)
-            
-        } catch let error as ServerError {
-            throw error
-        } catch {
-            let service: String
-            if driver is WebDriver.Firefox {
-                service = "geckodriver"
-            } else {
-                service = "(unknown)"
-            }
-            
-            throw SessionError.initialConnectionFailed(service, error)
-        }
+        let results = try await self.data(.post, "session", json: ["capabilities": ["alwaysMatch" : driver.capabilities]])
+        let parser = try JSONParser(data: results.0)
+        self.sessionID = try parser.object("value")["sessionId"]
+        
+        guard let value = String(data: results.0, encoding: .utf8) else { throw SessionError.connectionLost }
+        print(value)
+        print(results.1)
     }
     
     
@@ -113,6 +110,7 @@ public final class Session<Driver: WebDriverProtocol, Launcher: WebDriverLaunche
         try await self.data(method, uri, data: JSONSerialization.data(withJSONObject: json))
     }
     
+    /// Close the connection.
     public func close() async throws {
         let _ = try await self.data(.delete, "session/\(sessionID)", data: nil)
         self.launcher.stop()

@@ -21,7 +21,7 @@ public protocol WebDriverProtocol<Launcher> {
     
     var capabilities: [String : Any] { get set }
     
-    func startSession() async throws -> Session<Self, Launcher>
+    func startSession() async throws -> Session<Launcher>
     
     init(capabilities: [String : Any])
     

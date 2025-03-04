@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Essentials
 
 
 public struct SessionStatus: Sendable {

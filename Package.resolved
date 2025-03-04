@@ -1,13 +1,13 @@
 {
-  "originHash" : "ac986c277456f505821b6948cd84edd2681f21c5218371f21790c82ff955a4b2",
+  "originHash" : "ff04195c45cc6ea01bea958bcd6e365d175439efcce70ca94e94567df1f5438c",
   "pins" : [
     {
       "identity" : "essentials",
       "kind" : "remoteSourceControl",
       "location" : "https://www.github.com/Vaida12345/Essentials",
       "state" : {
-        "revision" : "0a6daefd3952c0c48b17a03d3bbcf67f3aa03cef",
-        "version" : "1.0.17"
+        "revision" : "55fc13c34ba1d2157941523dd99597c2faf0c1bc",
+        "version" : "1.0.18"
       }
     },
     {

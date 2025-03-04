@@ -17,7 +17,7 @@ extension WebDriver {
         public var capabilities: [String : Any]
         
         
-        public func startSession() async throws -> Session<WebDriver.Firefox, GeckoLauncher> {
+        public func startSession() async throws -> Session<GeckoLauncher> {
             let launcher = try await GeckoLauncher(driver: self)
             return try await Session(launcher: launcher)
         }
@@ -119,15 +119,6 @@ public extension WebDriver.Firefox {
     /// Opens a new private browsing window in an existing instance of Firefox
     func privateWindow() -> WebDriver.Firefox {
         self.appendingFirefoxArg(arg: "-private-window")
-    }
-    
-}
-
-
-public extension WebDriver.Firefox {
-    
-    func _launchWebDriver(manager: ShellManager) throws {
-        try manager.run(arguments: "geckodriver --port 4444")
     }
     
 }

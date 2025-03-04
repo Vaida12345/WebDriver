@@ -10,8 +10,6 @@ import Foundation
 
 public protocol WebDriverLauncher<Driver> {
     
-    var manager: ShellManager { get }
-    
     var driver: Driver { get }
     
     var port: UInt16 { get }

@@ -55,12 +55,6 @@ import Darwin
 /// - ``output()``
 ///
 ///
-/// ### Dealing with `stdin`
-///
-/// - ``write(_:)-4uo92``
-/// - ``write(_:)-4tpa2``
-///
-///
 /// ### Control the execution
 ///
 /// - ``terminate()``
@@ -76,12 +70,8 @@ import Darwin
 /// - ``onTermination(handler:)``
 /// - ``environment``
 /// - ``run(executable:arguments:workingDirectory:)-swift.method``
-///
-/// ### Groups
-///
-/// - ``ShellManagers``
 @dynamicMemberLookup
-public final class ShellManager: Equatable, Hashable, Identifiable, @unchecked Sendable {
+internal final class ShellManager: Equatable, Hashable, Identifiable, @unchecked Sendable {
     
     /// The object that represents a subprocess of the current process.
     private var task: Process
