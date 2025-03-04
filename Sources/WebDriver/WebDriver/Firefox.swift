@@ -14,19 +14,22 @@ extension WebDriver {
     /// The Firefox WebDriver.
     public struct Firefox: WebDriverProtocol {
         
-        public var baseURL: URL
-        
         public var capabilities: [String : Any]
         
         
-        public init(_baseURL: URL, capabilities: [String : Any]) {
-            self.baseURL = _baseURL
+        public func startSession() async throws -> Session<WebDriver.Firefox, GeckoLauncher> {
+            let launcher = try await GeckoLauncher(driver: self)
+            return try await Session(launcher: launcher)
+        }
+        
+        
+        public init(capabilities: [String : Any]) {
             self.capabilities = capabilities
         }
         
         /// Initialize the WebDriver.
-        public init(url: URL = URL(string: "http://localhost:4444")!) {
-            self.init(_baseURL: url, capabilities: [:])
+        public init() {
+            self.init(capabilities: [:])
         }
         
     }
@@ -43,7 +46,7 @@ public extension WebDriver.Firefox {
         
         capabilities["moz:firefoxOptions"] = firefoxCapabilities
         
-        return Self(_baseURL: self.baseURL, capabilities: capabilities)
+        return Self(capabilities: capabilities)
     }
     
     internal func appendingFirefoxArg(arg: String) -> Self {
@@ -55,7 +58,7 @@ public extension WebDriver.Firefox {
         firefoxCapabilities["args"] = args
         capabilities["moz:firefoxOptions"] = firefoxCapabilities
         
-        return Self(_baseURL: self.baseURL, capabilities: capabilities)
+        return Self(capabilities: capabilities)
     }
     
     

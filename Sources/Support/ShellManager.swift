@@ -9,6 +9,7 @@
 import Foundation
 import FinderItem
 import Essentials
+import Darwin
 
 
 /// A convenient interface to run shell.
@@ -232,7 +233,7 @@ public final class ShellManager: Equatable, Hashable, Identifiable, @unchecked S
     
     /// Sends a terminate signal to the receiver and all of its subtasks.
     public func terminate() {
-        task.terminate()
+        kill(task.processIdentifier, SIGKILL)
     }
     
     /// A completion block the system invokes when the task completes.

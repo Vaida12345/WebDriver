@@ -9,19 +9,21 @@ import Foundation
 import OSLog
 
 
-public final class Session: @unchecked Sendable {
+public final class Session<Driver: WebDriverProtocol, Launcher: WebDriverLauncher>: @unchecked Sendable {
     
-    public let driver: any WebDriverProtocol
+    public let launcher: Launcher
     
     public let session: URLSession
     
-    public var sessionID: String
+    public private(set) var sessionID: String
     
     
-    init(driver: any WebDriverProtocol) async throws {
-        self.driver = driver
+    init(launcher: Launcher) async throws {
         self.session = URLSession(configuration: .ephemeral)
         self.sessionID = ""
+        self.launcher = launcher
+        
+        let driver = launcher.driver
         
         do {
             let results = try await self.data(.post, "session", json: ["capabilities": ["alwaysMatch" : driver.capabilities]])
@@ -52,7 +54,7 @@ public final class Session: @unchecked Sendable {
         _ uri: String,
         data: Data?
     ) -> URLRequest {
-        var request = URLRequest(url: self.driver.baseURL.appending(path: uri))
+        var request = URLRequest(url: self.launcher.baseURL.appending(path: uri))
         request.httpMethod = method.rawValue
         if let data {
             request.httpBody = data
@@ -113,6 +115,7 @@ public final class Session: @unchecked Sendable {
     
     public func close() async throws {
         let _ = try await self.data(.delete, "session/\(sessionID)", data: nil)
+        self.launcher.stop()
     }
     
     

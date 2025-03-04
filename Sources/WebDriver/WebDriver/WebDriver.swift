@@ -17,13 +17,15 @@ public enum WebDriver {
 
 
 /// The actual protocol that all drivers conform.
-public protocol WebDriverProtocol {
-    
-    var baseURL: URL { get set }
+public protocol WebDriverProtocol<Launcher> {
     
     var capabilities: [String : Any] { get set }
     
-    init(_baseURL: URL, capabilities: [String : Any])
+    func startSession() async throws -> Session<Self, Launcher>
+    
+    init(capabilities: [String : Any])
+    
+    associatedtype Launcher: WebDriverLauncher
     
 }
 
@@ -31,7 +33,7 @@ public protocol WebDriverProtocol {
 public extension WebDriverProtocol {
     
     internal func appendingCapability(key: String, value: String) -> Self {
-        Self(_baseURL: self.baseURL, capabilities: self.capabilities.merging([key : value], uniquingKeysWith: { $1 }))
+        Self(capabilities: self.capabilities.merging([key : value], uniquingKeysWith: { $1 }))
     }
     
     /// Identifies the user agent.
@@ -54,15 +56,6 @@ public extension WebDriverProtocol {
     /// Defines the session's page load strategy.
     func pageLoadStrategy(_ strategy: PageLoadStrategy = .normal) -> Self {
         self.appendingCapability(key: "pageLoadStrategy", value: strategy.rawValue)
-    }
-    
-}
-
-
-public extension WebDriverProtocol {
-    
-    func startSession() async throws -> Session {
-        try await Session(driver: self)
     }
     
 }
