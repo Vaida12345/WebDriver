@@ -24,10 +24,15 @@ try await expect(session.url, equals: url)
 try await expect(session.title, equals: "Google")
 
 //try await session.closeWindow()
-try await session.newWindow()
+try await session.windowHandle
+try await session.new(.window)
+try await session.windowHandle
+
 
 print("All tests passed")
 
 try await Task.sleep(for: .seconds(5))
+
+try await session.windowHandle
 
 try await session.close()

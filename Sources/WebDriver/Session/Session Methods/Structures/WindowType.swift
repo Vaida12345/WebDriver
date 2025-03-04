@@ -6,7 +6,7 @@
 //
 
 
-public enum WindowType: Sendable, Equatable {
+public enum WindowType: String, Sendable, Equatable {
     
     case tab
     
