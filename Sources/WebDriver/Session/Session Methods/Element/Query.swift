@@ -15,9 +15,6 @@ extension Session.Window.Element {
         case partial_link_text(String)
         case tag_name(String)
         case xpath(String)
-        
-        case and(lhs: _Query, rhs: _Query)
-        case or(lhs: _Query, rhs: _Query)
     }
     
 }
