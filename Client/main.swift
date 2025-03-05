@@ -26,9 +26,13 @@ do {
     
     
     let window = try await session.window
-    let newWindow = try await session.makeWindow(type: .window)
     
     let _ = try await window.frame
+    try await window.setFrame(x: 0, y: 0, width: 100, height: 100)
+    try await Task.sleep(for: .seconds(1))
+    
+    try await window.maximize()
+    try await Task.sleep(for: .seconds(1))
     
     print("All tests passed")
     

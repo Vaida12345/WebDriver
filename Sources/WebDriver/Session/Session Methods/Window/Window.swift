@@ -42,7 +42,9 @@ extension Session {
 extension Session.Window {
     
     
-    /// Makes the window the top level one.
+    /// Makes the window the top level browsing context.
+    ///
+    /// - Important: This does not necessarily mean the window is brought to front. This depends on the individual browser's implementations.
     public func becomeFirstResponder() async throws {
         let _ = try await self.session.data(.post, "session/\(self.session.id)/window", json: ["handle" : self.id])
     }
