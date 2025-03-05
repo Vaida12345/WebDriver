@@ -17,15 +17,13 @@ public enum WebDriver {
 
 
 /// The actual protocol that all drivers conform.
-public protocol WebDriverProtocol<Launcher> {
+public protocol WebDriverProtocol {
     
     var capabilities: [String : Any] { get set }
     
-    func startSession() async throws -> Session<Launcher>
+    func startSession() async throws -> Session
     
     init(capabilities: [String : Any])
-    
-    associatedtype Launcher: WebDriverLauncher
     
 }
 

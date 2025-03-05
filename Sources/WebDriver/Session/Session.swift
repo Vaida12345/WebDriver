@@ -14,12 +14,12 @@ import Essentials
 /// All interactions with the browser it controls are communicated via a session.
 ///
 /// To obtain a session, call the ``WebDriverProtocol/startSession()``. After you are finished with a session, close the session using ``close()``.
-public struct Session<Launcher: WebDriverLauncher>: @unchecked Sendable, Identifiable {
+public struct Session: @unchecked Sendable, Identifiable {
     
     /// The launcher that launched the backend for this session.
     ///
     /// Through the launcher, the launch args, the backend url, and the service used can be obtained.
-    internal let launcher: Launcher
+    internal let launcher: any WebDriverLauncher
     
     /// The shared url session for this instance. All connection will be transmitted through this session.
     internal let session: URLSession
@@ -28,7 +28,7 @@ public struct Session<Launcher: WebDriverLauncher>: @unchecked Sendable, Identif
     public var id: String
     
     
-    init(launcher: Launcher) async throws {
+    init(launcher: any WebDriverLauncher) async throws {
         self.session = URLSession(configuration: .ephemeral)
         self.id = ""
         self.launcher = launcher

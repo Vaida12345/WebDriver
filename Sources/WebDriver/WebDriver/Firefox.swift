@@ -17,7 +17,7 @@ extension WebDriver {
         public var capabilities: [String : Any]
         
         
-        public func startSession() async throws -> Session<GeckoLauncher> {
+        public func startSession() async throws -> Session {
             let launcher = try await GeckoLauncher(driver: self)
             return try await Session(launcher: launcher)
         }
