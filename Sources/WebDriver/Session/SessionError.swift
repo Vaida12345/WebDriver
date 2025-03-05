@@ -8,10 +8,12 @@
 import Essentials
 
 
+/// Error introduced in this package.
 public enum SessionError: GenericError {
     
     case initialConnectionFailed(String, any Error)
     case connectionLost
+    case badResponse(code: Int, message: String?)
     
     
     public var title: String? {
@@ -20,6 +22,8 @@ public enum SessionError: GenericError {
             "Initial connection to the server failed"
         case .connectionLost:
             "Connection Lost"
+        case .badResponse(let code, _):
+            "Bad Response (Code \(code))"
         }
     }
     
@@ -29,6 +33,8 @@ public enum SessionError: GenericError {
             "Please ensure the server `\(serviceName)` is running. The error is: \(error)"
         case .connectionLost:
             "Connection Lost"
+        case .badResponse(_, let message):
+            message ?? "(not decodable as String)"
         }
     }
     

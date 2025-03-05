@@ -94,13 +94,13 @@ extension Session {
     /// Navigation to the given url.
     public var timeout: Timeout {
         get async throws {
-            let (data, _) = try await self.data(.get, "session/\(sessionID)/timeouts", data: nil)
+            let (data, _) = try await self.data(.get, "session/\(id)/timeouts", data: nil)
             return try Timeout(parser: JSONParser(data: data))
         }
     }
     
     public func set(timeout: Timeout) async throws {
-        let _ = try await self.data(.post, "session/\(sessionID)/timeouts", json: timeout.encode())
+        let _ = try await self.data(.post, "session/\(id)/timeouts", json: timeout.encode())
     }
     
 }
