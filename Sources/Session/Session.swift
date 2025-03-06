@@ -14,7 +14,7 @@ import Essentials
 /// All interactions with the browser it controls are communicated via a session.
 ///
 /// To obtain a session, call the ``WebDriverProtocol/startSession()``. After you are finished with a session, close the session using ``close()``.
-public struct Session: @unchecked Sendable, Identifiable {
+public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertible {
     
     /// The launcher that launched the backend for this session.
     ///
@@ -28,14 +28,17 @@ public struct Session: @unchecked Sendable, Identifiable {
     public var id: String
     
     
+    public var description: String {
+        "Session<\(type(of: launcher.driver))>"
+    }
+    
+    
     init(launcher: any WebDriverLauncher) async throws {
         self.session = URLSession(configuration: .ephemeral)
         self.id = ""
         self.launcher = launcher
         
         let driver = launcher.driver
-        
-        print(["capabilities": ["alwaysMatch" : driver.capabilities]])
         
         let results = try await self.data(.post, "session", json: ["capabilities": ["alwaysMatch" : driver.capabilities]])
         let parser = try JSONParser(data: results.0)

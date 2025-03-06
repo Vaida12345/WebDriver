@@ -16,11 +16,11 @@ extension Session.Window.Element {
         let value: String
         
         enum Locator: String, CustomStringConvertible, Equatable {
-            case css
-            case linkText
-            case partialLinkText
-            case tagName
-            case xpath
+            case css = "css selector"
+            case linkText = "link text"
+            case partialLinkText = "partial link text"
+            case tagName = "tag name"
+            case xpath = "xpath"
             
             var description: String {
                 ".\(self.rawValue)"

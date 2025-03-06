@@ -8,7 +8,7 @@
 
 extension Session.Window.Element {
     
-    public struct LocatorProxy {
+    public struct LocatorProxy: Sendable {
         
         /// The id of the element.
         ///

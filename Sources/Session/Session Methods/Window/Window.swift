@@ -17,7 +17,7 @@ extension Session {
     /// In this implementation, a window encapsulates a `windowHandle`.
     ///
     /// Several properties and methods, including ``frame`` and ``close()``, will switch the first responder.
-    public struct Window: Identifiable, Sendable {
+    public struct Window: Identifiable, Sendable, CustomStringConvertible {
         
         var session: Session
         
@@ -26,6 +26,15 @@ extension Session {
         
         /// The window type, either `tab` or `window`.
         public var type: WindowType?
+        
+        
+        public var description: String {
+            var description = "Window<\(Swift.type(of: session.launcher.driver))"
+            if let type {
+                description.write(", \(type.rawValue)")
+            }
+            return description + ">"
+        }
         
         
         public enum WindowType: String, Sendable, Equatable {

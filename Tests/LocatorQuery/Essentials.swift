@@ -19,8 +19,7 @@ extension Tag {
 }
 
 func query(_ predicate: (Element.LocatorProxy) -> any LocatorQuery) -> Element.Query {
-    let proxy = Element.LocatorProxy()
-    return predicate(proxy).makeQuery()
+    query { predicate($0).makeQuery() }
 }
 
 func query(_ predicate: (Element.LocatorProxy) -> Query) -> Element.Query {

@@ -13,15 +13,17 @@ let driver = WebDriver.Firefox()
     .profile(location: "/Users/vaida/Library/Application Support/Firefox/Profiles/2hzm7hvo.Default User")
 //    .profile(location: "/Users/vaida/Library/Caches/Firefox/Profiles/2hzm7hvo.Default User")
 
-print("123")
 let session = try await driver.linkSession()
 
 do {
-    
+    try await session.open(url: URL(string: "https://www.google.com")!)
+    let window = try await session.window
+    let element = try await window.findElement(where: { $0.tag == "textarea" && $0.title == "Search" })
+    try await element.write("Swift")
     
     print("All tests passed")
     
-    try await Task.sleep(for: .seconds(3))
+    try await Task.sleep(for: .seconds(10))
 } catch {
     print(error)
 }
