@@ -8,7 +8,7 @@
 
 extension Element {
     
-    public indirect enum AttributeLocatorQuery {
+    public indirect enum AttributeLocatorQuery: LocatorQuery {
         case exact(locator: AttributeLocator, value: String)
         case contains(locator: AttributeLocator, value: String)
         case hasPrefix(locator: AttributeLocator, value: String)
@@ -33,7 +33,7 @@ extension Element {
         }
         
         
-        func makeQuery() -> _Query {
+        public func makeQuery() -> _Query {
             switch self {
             case let .exact(locator, value):
                 return .css_selector("[\(locator)=\"\(value)\"]")

@@ -43,6 +43,16 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Run Script"
+               scriptText = "kill -9 $(lsof -ti :4444)&#10;geckodriver -p 4444&#10;"
+               shellToInvoke = "/bin/zsh">
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
       <Testables>
          <TestableReference
             skipped = "NO">
@@ -72,16 +82,8 @@
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
                title = "Run Script"
-               scriptText = "open &quot;$BUILT_PRODUCTS_DIR/$EXECUTABLE_PATH&quot;&#10;">
-               <EnvironmentBuildable>
-                  <BuildableReference
-                     BuildableIdentifier = "primary"
-                     BlueprintIdentifier = "Client"
-                     BuildableName = "Client"
-                     BlueprintName = "Client"
-                     ReferencedContainer = "container:">
-                  </BuildableReference>
-               </EnvironmentBuildable>
+               scriptText = "PID=$(lsof -ti :4444)&#10;[ -n &quot;$PID&quot; ] &amp;&amp; kill -9 $PID&#10;/opt/homebrew/bin/geckodriver -p 4444&#10;"
+               shellToInvoke = "/bin/zsh">
             </ActionContent>
          </ExecutionAction>
       </PreActions>

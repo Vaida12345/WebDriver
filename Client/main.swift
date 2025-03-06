@@ -11,7 +11,7 @@ import WebDriver
 
 let driver = WebDriver.Firefox()
 
-let session = try await driver.startSession()
+let session = try await driver.linkSession()
 do {
     try await session.set(timeout: Timeout(script: .seconds(1)))
     

@@ -19,9 +19,14 @@ public enum WebDriver {
 /// The actual protocol that all drivers conform.
 public protocol WebDriverProtocol {
     
+    /// The capabilities required.
     var capabilities: [String : Any] { get set }
     
+    /// Creates a new session.
     func startSession() async throws -> Session
+    
+    /// Links an existing session.
+    func linkSession(url: URL, port: UInt16) async throws -> Session
     
     init(capabilities: [String : Any])
     
@@ -54,6 +59,11 @@ public extension WebDriverProtocol {
     /// Defines the session's page load strategy.
     func pageLoadStrategy(_ strategy: PageLoadStrategy = .normal) -> Self {
         self.appendingCapability(key: "pageLoadStrategy", value: strategy.rawValue)
+    }
+    
+    /// Links an existing session.
+    func linkSession(url: URL = URL(string: "127.0.0.1")!, port: UInt16 = 4444) async throws -> Session {
+        try await Session(launcher: LinkedLauncher(driver: self, url: url, port: port))
     }
     
 }

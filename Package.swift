@@ -21,6 +21,6 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(name: "WebDriver", dependencies: ["FinderItem", "Essentials"], path: "Sources"),
         .executableTarget(name: "Client", dependencies: ["WebDriver", "FinderItem"], path: "Client"),
-        .testTarget(name: "WebDriverTests", dependencies: ["WebDriver"]),
+        .testTarget(name: "WebDriverTests", dependencies: ["WebDriver"], path: "Tests"),
     ]
 )

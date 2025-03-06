@@ -86,6 +86,16 @@ extension Session.Window.Element {
         public var alt: Session.Window.Element.AttributeLocator {
             .alt
         }
+        
+        /// Text content of an `<a>` element.
+        public var hrefText: Session.Window.Element.LinkTextLocator {
+            .init()
+        }
+        
+        /// The text content.
+        public var text: Session.Window.Element.XPathLocator {
+            .init(attribute: .function("text"))
+        }
 
         
     }
