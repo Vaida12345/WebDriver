@@ -12,7 +12,7 @@ extension Session.Window.Element {
     public struct TagLocator: Locator {
         
         /// Use equitable to form query.
-        public static func == (_ lhs: Self, _ rhs: String) -> any LocatorQuery {
+        public static func == (_ lhs: TagLocator, _ rhs: String) -> any LocatorQuery {
             TagQuery(value: rhs)
         }
         

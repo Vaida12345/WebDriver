@@ -16,7 +16,7 @@ struct ConjunctionQuery: LocatorQuery {
         let tag = body.firstIndex(where: { $0 is TagQuery }).map({ body.remove(at: $0) }) as? TagQuery
         precondition(!body.contains(where: { $0 is TagQuery }), "An element cannot have two tag names. The query itself is `false`.")
         
-        let descriptions = self.body.map(\.cssDescription)
+        let descriptions = body.map(\.cssDescription)
         let compact = descriptions.compacted()
         guard descriptions.count == compact.count else { return nil }
         
@@ -46,10 +46,12 @@ struct ConjunctionQuery: LocatorQuery {
         let tag = body.firstIndex(where: { $0 is TagQuery }).map({ body.remove(at: $0) }) as? TagQuery
         precondition(!body.contains(where: { $0 is TagQuery }), "An element cannot have two tag names. The query itself is `false`.")
         
+        let descriptions = body.map(\.description)
+        
         if let tag = tag?.value {
-            return "//\(tag)[" + body.map(\.description).joined(separator: " and ") + "]"
+            return "//\(tag)[" + descriptions.joined(separator: " and ") + "]"
         } else {
-            return "(" + body.map(\.description).joined(separator: " and ") + ")"
+            return "(" + descriptions.joined(separator: " and ") + ")"
         }
     }
     

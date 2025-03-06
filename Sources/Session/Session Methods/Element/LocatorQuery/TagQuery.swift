@@ -16,7 +16,7 @@ struct TagQuery: LocatorQuery {
     }
     
     var description: String {
-        self.value
+        "//\(self.value)"
     }
     
     var containsTag: Bool {

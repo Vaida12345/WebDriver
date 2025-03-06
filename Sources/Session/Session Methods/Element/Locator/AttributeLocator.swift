@@ -40,11 +40,11 @@ extension Session.Window.Element {
         }
         
         /// Use equitable to form query.
-        public static func == (_ lhs: Self, _ rhs: String) -> any LocatorQuery {
+        public static func == (_ lhs: AttributeLocator, _ rhs: String) -> any LocatorQuery {
             AttributeQuery.exact(locator: lhs, value: rhs)
         }
         
-        public static func != (_ lhs: Self, _ rhs: String) -> any LocatorQuery {
+        public static func != (_ lhs: AttributeLocator, _ rhs: String) -> any LocatorQuery {
             XPathQuery(operation: .notEquals, attribute: .property(lhs.rawValue), value: rhs)
         }
         

@@ -18,6 +18,8 @@ extension Session.Window.Element {
         }
         
         /// The tagname of the element.
+        ///
+        /// For example, the tag name of `<p>` is `p`. One element has only one tag name, it will raise an `preconditionFailure` when an element is required to have two tag names.
         public var tag: TagLocator {
             TagLocator()
         }

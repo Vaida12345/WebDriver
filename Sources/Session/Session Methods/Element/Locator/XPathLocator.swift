@@ -25,11 +25,11 @@ extension Session.Window.Element {
             XPathQuery(operation: .hasSuffix, attribute: self.attribute, value: string)
         }
         
-        public static func == (_ lhs: Self, _ rhs: String) -> any LocatorQuery {
+        public static func == (_ lhs: XPathLocator, _ rhs: String) -> any LocatorQuery {
             XPathQuery(operation: .equals, attribute: lhs.attribute, value: rhs)
         }
         
-        public static func != (_ lhs: Self, _ rhs: String) -> any LocatorQuery {
+        public static func != (_ lhs: XPathLocator, _ rhs: String) -> any LocatorQuery {
             XPathQuery(operation: .notEquals, attribute: lhs.attribute, value: rhs)
         }
         

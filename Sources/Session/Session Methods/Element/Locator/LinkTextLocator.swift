@@ -15,7 +15,7 @@ extension Session.Window.Element {
             Query(locator: .partialLinkText, value: other)
         }
         
-        public static func == (_ lhs: Self, _ rhs: String) -> Query {
+        public static func == (_ lhs: LinkTextLocator, _ rhs: String) -> Query {
             Query(locator: .linkText, value: rhs)
         }
         

@@ -39,17 +39,17 @@ extension WebDriver {
 
 public extension WebDriver.Firefox {
     
-    internal func appendingFirefoxCapability(key: String, value: String) -> Self {
+    internal func appendingFirefoxCapability(key: String, value: String) -> WebDriver.Firefox {
         var capabilities = self.capabilities // copy
         var firefoxCapabilities = capabilities["moz:firefoxOptions", default: [:]] as! [String : Any]
         firefoxCapabilities.updateValue(value, forKey: key)
         
         capabilities["moz:firefoxOptions"] = firefoxCapabilities
         
-        return Self(capabilities: capabilities)
+        return WebDriver.Firefox(capabilities: capabilities)
     }
     
-    internal func appendingFirefoxArg(arg: String) -> Self {
+    internal func appendingFirefoxArg(arg: String) -> WebDriver.Firefox {
         var capabilities = self.capabilities // copy
         var firefoxCapabilities = capabilities["moz:firefoxOptions", default: [:]] as! [String : Any]
         var args = firefoxCapabilities["args", default: []] as! [String]
@@ -58,7 +58,7 @@ public extension WebDriver.Firefox {
         firefoxCapabilities["args"] = args
         capabilities["moz:firefoxOptions"] = firefoxCapabilities
         
-        return Self(capabilities: capabilities)
+        return WebDriver.Firefox(capabilities: capabilities)
     }
     
     

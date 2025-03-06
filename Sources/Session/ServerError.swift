@@ -60,7 +60,7 @@ public struct ServerError: GenericError, @unchecked Sendable {
     }
     
     
-    public static func == (_ lhs: Self, _ rhs: Self) -> Bool {
+    public static func == (_ lhs: ServerError, _ rhs: ServerError) -> Bool {
         lhs.statusCode == rhs.statusCode &&
         lhs.title == rhs.title &&
         lhs.message == rhs.message &&

@@ -26,6 +26,12 @@ extension Session.Window.Element {
                 ".\(self.rawValue)"
             }
         }
+        
+        
+        init(locator: Locator, value: String) {
+            self.locator = locator
+            self.value = value
+        }
     }
     
 }

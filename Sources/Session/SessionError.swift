@@ -39,7 +39,7 @@ public enum SessionError: GenericError {
     }
     
     
-    public static func == (_ lhs: Self, _ rhs: Self) -> Bool {
+    public static func == (_ lhs: SessionError, _ rhs: SessionError) -> Bool {
         lhs.message == rhs.message
     }
     

@@ -34,15 +34,15 @@ struct XPathQuery: LocatorQuery, CustomStringConvertible {
         
         switch operation {
         case .contains:
-            return "contains(\(attribute), \(value))"
+            return "contains(\(attribute), \"\(value)\")"
         case .equals:
-            return "\(attribute)=\(value)"
+            return "\(attribute)=\"\(value)\""
         case .notEquals:
-            return "\(attribute) != \(value)"
+            return "\(attribute) != \"\(value)\""
         case .hasPrefix:
-            return "starts-with(\(attribute), \(value))"
+            return "starts-with(\(attribute), \"\(value)\")"
         case .hasSuffix:
-            return "ends-with(\(attribute), \(value))"
+            return "ends-with(\(attribute), \"\(value)\")"
         }
     }
     
