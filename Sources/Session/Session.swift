@@ -35,6 +35,8 @@ public struct Session: @unchecked Sendable, Identifiable {
         
         let driver = launcher.driver
         
+        print(["capabilities": ["alwaysMatch" : driver.capabilities]])
+        
         let results = try await self.data(.post, "session", json: ["capabilities": ["alwaysMatch" : driver.capabilities]])
         let parser = try JSONParser(data: results.0)
         self.id = try parser.object("value")["sessionId"]
@@ -51,8 +53,11 @@ public struct Session: @unchecked Sendable, Identifiable {
         var request = URLRequest(url: self.launcher.baseURL.appending(path: uri))
         request.httpMethod = method.rawValue
         if let data {
-            request.httpBody = data
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = data
+        } else if method == .post {
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = "{}".data(using: .utf8)
         }
         return request
     }

@@ -66,7 +66,7 @@ public extension WebDriver.Firefox {
     ///
     /// On macOS you may either give the path to the application bundle, i.e. `/Applications/Firefox.app`, or the absolute path to the executable binary inside this bundle, for example `/Applications/Firefox.app/Contents/MacOS/firefox-bin`.
     func binary(location: FinderItem) -> WebDriver.Firefox {
-        self.appendingCapability(key: "binary", value: location.path)
+        self.appendingFirefoxCapability(key: "binary", value: location.path)
     }
     
     
@@ -78,7 +78,7 @@ public extension WebDriver.Firefox {
     /// Start with the profile with the given path.
     func profile(location: FinderItem) -> WebDriver.Firefox {
         self.appendingFirefoxArg(arg: "-profile")
-            .appendingFirefoxArg(arg: "\"\(location.path)\"")
+            .appendingFirefoxArg(arg: location.path)
     }
     
     /// Bypass profile manager and launch application with the profile named `name`.
