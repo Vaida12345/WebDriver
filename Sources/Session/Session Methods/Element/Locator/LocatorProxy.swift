@@ -13,87 +13,87 @@ extension Session.Window.Element {
         /// The id of the element.
         ///
         /// This is the fastest way of locating an element.
-        public var id: Session.Window.Element.AttributeLocator {
+        public var id: AttributeLocator {
             .id
         }
         
         /// The tagname of the element.
-        public var tag: Session.Window.Element.TagLocator {
-            .tag
+        public var tag: TagLocator {
+            TagLocator()
         }
         
         /// The class of the element.
-        public var `class`: Session.Window.Element.AttributeLocator {
+        public var `class`: AttributeLocator {
             .class
         }
         
         /// Inline CSS.
-        public var style: Session.Window.Element.AttributeLocator {
+        public var style: AttributeLocator {
             .style
         }
         
         /// Tooltip text.
-        public var title: Session.Window.Element.AttributeLocator {
+        public var title: AttributeLocator {
             .title
         }
         
         /// Hides the element.
-        public var hidden: Session.Window.Element.AttributeLocator {
+        public var hidden: AttributeLocator {
             .hidden
         }
         
         /// Defines tab order.
-        public var tabindex: Session.Window.Element.AttributeLocator {
+        public var tabindex: AttributeLocator {
             .tabindex
         }
         
         /// Defines input type (text, email, password, etc..
-        public var type: Session.Window.Element.AttributeLocator {
+        public var type: AttributeLocator {
             .type
         }
         
         /// Default value of input.
-        public var value: Session.Window.Element.AttributeLocator {
+        public var value: AttributeLocator {
             .value
         }
         
         /// Hint text inside input.
-        public var placeholder: Session.Window.Element.AttributeLocator {
+        public var placeholder: AttributeLocator {
             .placeholder
         }
         
         /// Name of input field.
-        public var name: Session.Window.Element.AttributeLocator {
+        public var name: AttributeLocator {
             .name
         }
         
         /// Regex validation.
-        public var pattern: Session.Window.Element.AttributeLocator {
+        public var pattern: AttributeLocator {
             .pattern
         }
         
         /// URL of the link.
-        public var href: Session.Window.Element.AttributeLocator {
+        public var href: AttributeLocator {
             .href
         }
 
         /// Image/audio/video source URL.
-        public var src: Session.Window.Element.AttributeLocator {
+        public var src: AttributeLocator {
             .src
         }
         
         /// Alternative text for images.
-        public var alt: Session.Window.Element.AttributeLocator {
+        public var alt: AttributeLocator {
             .alt
         }
         
         /// Text content of an `<a>` element.
-        public var hrefText: Session.Window.Element.LinkTextLocator {
-            .init()
+        public var hrefText: LinkTextLocator {
+            LinkTextLocator()
         }
         
         /// The text content.
-        public var text: Session.Window.Element.XPathLocator {
+        public var text: XPathLocator {
             .init(attribute: .function("text"))
         }
 

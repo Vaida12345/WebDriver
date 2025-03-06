@@ -27,21 +27,25 @@ extension Session.Window.Element {
         case alt
         
         
-        public func contains(_ value: String) -> AttributeLocatorQuery {
-            .contains(locator: self, value: value)
+        public func contains(_ value: String) -> any LocatorQuery {
+            AttributeQuery.contains(locator: self, value: value)
         }
         
-        public func hasPrefix(_ prefix: String) -> AttributeLocatorQuery {
-            .hasPrefix(locator: self, value: prefix)
+        public func hasPrefix(_ prefix: String) -> any LocatorQuery {
+            AttributeQuery.hasPrefix(locator: self, value: prefix)
         }
         
-        public func hasSuffix(_ suffix: String) -> AttributeLocatorQuery {
-            .hasSuffix(locator: self, value: suffix)
+        public func hasSuffix(_ suffix: String) -> any LocatorQuery {
+            AttributeQuery.hasSuffix(locator: self, value: suffix)
         }
         
         /// Use equitable to form query.
-        public static func == (_ lhs: Self, _ rhs: String) -> AttributeLocatorQuery {
-            .exact(locator: lhs, value: rhs)
+        public static func == (_ lhs: Self, _ rhs: String) -> any LocatorQuery {
+            AttributeQuery.exact(locator: lhs, value: rhs)
+        }
+        
+        public static func != (_ lhs: Self, _ rhs: String) -> any LocatorQuery {
+            XPathQuery(operation: .notEquals, attribute: .property(lhs.rawValue), value: rhs)
         }
         
     }

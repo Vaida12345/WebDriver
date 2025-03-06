@@ -9,12 +9,11 @@
 extension Session.Window.Element {
     
     /// A CSS attribute locator.
-    public enum TagLocator: String, Locator {
-        case tag
+    public struct TagLocator: Locator {
         
         /// Use equitable to form query.
-        public static func == (_ lhs: Self, _ rhs: String) -> AttributeLocatorQuery {
-            .and(tag: rhs, [])
+        public static func == (_ lhs: Self, _ rhs: String) -> any LocatorQuery {
+            TagQuery(value: rhs)
         }
         
     }

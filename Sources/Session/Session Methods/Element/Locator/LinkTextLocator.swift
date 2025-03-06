@@ -11,12 +11,12 @@ extension Session.Window.Element {
     /// A CSS attribute locator.
     public struct LinkTextLocator: Locator {
         
-        public func contains(_ other: String) -> _Query {
-            .partial_link_text(other)
+        public func contains(_ other: String) -> Query {
+            Query(locator: .partialLinkText, value: other)
         }
         
-        public static func == (_ lhs: Self, _ rhs: String) -> _Query {
-            .link_text(rhs)
+        public static func == (_ lhs: Self, _ rhs: String) -> Query {
+            Query(locator: .linkText, value: rhs)
         }
         
     }
