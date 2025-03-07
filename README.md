@@ -2,6 +2,7 @@
 
 Similar to Selenium, this package is a Swift wrapper for the WebDriver protocol, allowing browser automations.
 
+
 ## 101
 
 Let's start by defining the driver we would like to use, along with the parameters.
@@ -85,6 +86,7 @@ You can add this framework as a dependency to your Xcode project by clicking Fil
 ```
 https://www.github.com/Vaida12345/WebDriver
 ```
+
 
 ## Documentation
 
