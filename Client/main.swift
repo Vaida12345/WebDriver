@@ -7,6 +7,7 @@
 
 import Foundation
 import WebDriver
+import FinderItem
 
 
 let driver = WebDriver.Firefox()
@@ -19,7 +20,11 @@ do {
     try await session.open(url: URL(string: "https://www.google.com")!)
     let window = try await session.window
     let element = try await window.findElement(where: { $0.tag == "textarea" && $0.title == "Search" })
-    try await element.write("Swift")
+    
+    try await element.screenshot().write(to: .desktopDirectory/"file.png")
+    
+    
+    try await print(window.cookies["NID"])
     
     print("All tests passed")
     

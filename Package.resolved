@@ -1,5 +1,5 @@
 {
-  "originHash" : "ff04195c45cc6ea01bea958bcd6e365d175439efcce70ca94e94567df1f5438c",
+  "originHash" : "c6aab13197b985335794e5f08e5863861dd7dbc6599f083137bcf9e86fde03aa",
   "pins" : [
     {
       "identity" : "essentials",
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "0d4af1b92c1969e638b90236a4671d11fcb564e2",
         "version" : "1.0.11"
+      }
+    },
+    {
+      "identity" : "nativeimage",
+      "kind" : "remoteSourceControl",
+      "location" : "https://www.github.com/Vaida12345/NativeImage",
+      "state" : {
+        "revision" : "0211385bf6bcfdb5412342831b1010f0e4930a22",
+        "version" : "1.0.1"
       }
     }
   ],
