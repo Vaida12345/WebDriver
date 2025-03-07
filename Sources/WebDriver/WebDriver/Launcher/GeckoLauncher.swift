@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import OSLog
 
 
 final class GeckoLauncher: WebDriverLauncher {
@@ -28,17 +27,11 @@ final class GeckoLauncher: WebDriverLauncher {
     init(driver: Driver) async throws {
         self.driver = driver
         
-        guard !ProcessInfo.processInfo.environment.keys.contains(where: { $0.contains("XCODE") }) else {
-            let logger = Logger(subsystem: "WebDriver", category: "WebDriver Launcher")
-            logger.critical("A webdriver cannot be launched correctly in Xcode environment. Please launch the executable directly. This program will exit.")
-            exit(1)
-        }
-        
         var manager = ShellManager()
         var port = UInt16.random(in: 49152...65535)
         
         while true {
-            try manager.run(arguments: "geckodriver -p \(port)")
+            try manager.run(arguments: "/opt/homebrew/bin/geckodriver -p \(port)")
             var stdout = manager.lines().makeAsyncIterator()
             
             let line = try await stdout.next()

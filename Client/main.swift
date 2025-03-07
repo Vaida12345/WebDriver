@@ -13,9 +13,8 @@ import FinderItem
 let driver = WebDriver.Firefox()
     .pageLoadStrategy(.eager)
     .profile(location: "/Users/vaida/Library/Application Support/Firefox/Profiles/2hzm7hvo.Default User")
-//    .profile(location: "/Users/vaida/Library/Caches/Firefox/Profiles/2hzm7hvo.Default User")
 
-let session = try await driver.linkSession()
+let session = try await driver.startSession()
 
 do {
     try await session.open(url: URL(string: "https://www.google.com")!)

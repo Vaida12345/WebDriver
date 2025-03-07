@@ -19,7 +19,7 @@ let driver = WebDriver.Firefox()
 Launch the driver and create a new session. All interactions with the driver will be conducted through this session.
 
 ```swift
-let session = try await driver.linkSession()
+let session = try await driver.startSession()
 ```
 
 Let's head to Google, and search for a beautiful language.

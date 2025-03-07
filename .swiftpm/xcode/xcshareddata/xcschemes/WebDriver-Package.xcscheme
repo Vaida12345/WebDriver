@@ -43,25 +43,6 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
-      <PreActions>
-         <ExecutionAction
-            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
-            <ActionContent
-               title = "Run Script"
-               scriptText = "pkill -f geckodriver&#10;pkill -f firefox&#10;geckodriver -p 4444&#10;"
-               shellToInvoke = "/bin/zsh">
-            </ActionContent>
-         </ExecutionAction>
-      </PreActions>
-      <PostActions>
-         <ExecutionAction
-            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
-            <ActionContent
-               title = "Run Script"
-               scriptText = "pkill -f geckodriver&#10;pkill -f firefox&#10;">
-            </ActionContent>
-         </ExecutionAction>
-      </PostActions>
       <Testables>
          <TestableReference
             skipped = "NO">
@@ -87,26 +68,6 @@
       debugXPCServices = "NO"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <PreActions>
-         <ExecutionAction
-            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
-            <ActionContent
-               title = "Run Script"
-               scriptText = "pkill -f geckodriver&#10;pkill -f firefox&#10;/opt/homebrew/bin/geckodriver -p 4444 &amp;&#10;"
-               shellToInvoke = "/bin/zsh">
-            </ActionContent>
-         </ExecutionAction>
-      </PreActions>
-      <PostActions>
-         <ExecutionAction
-            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
-            <ActionContent
-               title = "Run Script"
-               scriptText = "pkill -f geckodriver&#10;pkill -f firefox&#10;"
-               shellToInvoke = "/bin/zsh">
-            </ActionContent>
-         </ExecutionAction>
-      </PostActions>
       <BuildableProductRunnable
          runnableDebuggingMode = "0">
          <BuildableReference
