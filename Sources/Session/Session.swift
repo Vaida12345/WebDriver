@@ -13,7 +13,40 @@ import Essentials
 ///
 /// All interactions with the browser it controls are communicated via a session.
 ///
-/// To obtain a session, call the ``WebDriverProtocol/startSession()``. After you are finished with a session, close the session using ``close()``.
+/// To obtain a session, call the ``WebDriver/WebDriverProtocol/startSession()``. After you are finished with a session, close the session using ``close()``.
+///
+/// ## Topics
+/// ### Swift Properties
+/// The properties introduced by this Swift implementation.
+/// - ``id``
+/// - ``description``
+///
+/// ### Context
+/// - ``window-swift.property``
+/// - ``windows``
+/// - ``makeWindow(type:)``
+///
+/// ### Essentials
+/// - ``close()``
+/// - ``status()``
+///
+/// ### Navigation
+/// - ``url``
+/// - ``title``
+/// - ``open(url:)``
+/// - ``get()``
+/// - ``back()``
+/// - ``forward()``
+/// - ``refresh()``
+///
+/// ### Timeout
+/// - ``timeout``
+/// - ``set(timeout:)``
+///
+/// ### Structures
+/// - ``Status``
+/// - ``SessionError``
+/// - ``Timeout``
 public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertible {
     
     /// The launcher that launched the backend for this session.
@@ -48,7 +81,7 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
     }
     
     
-    public func makeRequest(
+    func makeRequest(
         _ method: HTTPMethod,
         _ uri: String,
         data: Data?
@@ -65,7 +98,7 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
         return request
     }
     
-    public func data(
+    func data(
         _ method: HTTPMethod,
         _ uri: String,
         data: Data?
@@ -94,7 +127,7 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
         }
     }
     
-    public func data(
+    func data(
         _ method: HTTPMethod,
         _ uri: String,
         json: [String : Any]
@@ -105,7 +138,7 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
 }
 
 
-public extension Session {
+extension Session {
     
     enum HTTPMethod: String {
         case get = "GET"

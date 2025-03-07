@@ -8,7 +8,7 @@
 import Foundation
 
 
-public protocol WebDriverLauncher<Driver> {
+protocol WebDriverLauncher<Driver> {
     
     var driver: Driver { get }
     
@@ -25,7 +25,7 @@ public protocol WebDriverLauncher<Driver> {
 
 extension WebDriverLauncher {
     
-    public var baseURL: URL {
+    var baseURL: URL {
         URL(string: "http://\(self.url.absoluteString):\(self.port)")!
     }
 }

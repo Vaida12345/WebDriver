@@ -9,7 +9,7 @@ import Foundation
 
 
 /// An existing launcher.
-public final class LinkedLauncher<Driver: WebDriverProtocol>: WebDriverLauncher {
+final class LinkedLauncher<Driver: WebDriverProtocol>: WebDriverLauncher {
     
     public var driver: Driver
     

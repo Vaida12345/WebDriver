@@ -17,10 +17,10 @@ extension Session {
     }
     
     
-    public func status() async throws -> SessionStatus {
+    public func status() async throws -> Status {
         let (data, _) = try await self.data(.get, "status", data: nil)
         
-        return try SessionStatus(parser: JSONParser(data: data))
+        return try Status(parser: JSONParser(data: data))
     }
     
 }

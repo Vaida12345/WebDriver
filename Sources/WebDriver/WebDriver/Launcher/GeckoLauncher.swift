@@ -9,7 +9,7 @@ import Foundation
 import OSLog
 
 
-public final class GeckoLauncher: WebDriverLauncher {
+final class GeckoLauncher: WebDriverLauncher {
     
     internal let manager: ShellManager
     

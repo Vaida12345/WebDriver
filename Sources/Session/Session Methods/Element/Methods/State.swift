@@ -21,4 +21,11 @@ extension Element {
         }
     }
     
+    /// Returns whether the element is enabled.
+    public var isEnabled: Bool {
+        get async throws {
+            try await self.parser(.get, "enabled")!["value", .bool]
+        }
+    }
+    
 }

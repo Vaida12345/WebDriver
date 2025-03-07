@@ -14,9 +14,22 @@ extension Session.Window {
     ///
     /// > First Responder:
     /// > Unless stated otherwise, the first responder is switched to the ``window`` associated with `self`.
+    ///
+    /// ## Topics
+    /// ### Access Cookies
+    /// - ``values``
+    /// - ``subscript(_:)``
+    ///
+    /// ### Modify Cookies
+    /// - ``append(_:)``
+    /// - ``remove(_:)``
+    /// - ``removeAll()``
+    ///
+    /// ### Structures
+    /// - ``Cookie``
     public struct Cookies: Sendable {
         
-        public let window: Session.Window
+        let window: Session.Window
         
         
         public var values: [Cookie] {

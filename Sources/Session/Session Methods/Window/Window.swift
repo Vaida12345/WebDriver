@@ -17,6 +17,44 @@ extension Session {
     /// In this implementation, a window encapsulates a `windowHandle`.
     ///
     /// Several properties and methods, including ``frame`` and ``close()``, will switch the first responder.
+    ///
+    /// ## Topics
+    /// ### Swift Properties
+    /// The properties introduced by this Swift implementation.
+    /// - ``id``
+    /// - ``type``
+    /// - ``description``
+    /// - ``becomeFirstResponder()``
+    /// - ``close()``
+    ///
+    /// ### Cookie
+    /// - ``cookies-swift.property``
+    ///
+    /// ### Document
+    /// - ``pageSource``
+    /// - ``execute(_:args:async:)``
+    /// - ``screenshot()``
+    /// - ``render(orientation:scale:includesBackground:width:height:scaleToFit:margin:)``
+    ///
+    /// ### Element
+    /// - ``activeElement``
+    /// - ``findElement(where:)-8rmlq``
+    /// - ``findElements(where:)-794xe``
+    /// - <doc:Locator>
+    ///
+    /// ### Position
+    /// - ``frame``
+    /// - ``setFrame(_:)``
+    /// - ``setFrame(x:y:width:height:)``
+    /// - ``maximize()``
+    /// - ``minimize()``
+    /// - ``fullscreen()``
+    ///
+    /// ### Structures
+    /// - ``Cookies-swift.struct``
+    /// - ``WindowType``
+    /// - ``Margin``
+    /// - ``PageOrientation``
     public struct Window: Identifiable, Sendable, CustomStringConvertible {
         
         var session: Session

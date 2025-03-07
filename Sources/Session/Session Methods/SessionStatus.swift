@@ -9,16 +9,19 @@ import Foundation
 import Essentials
 
 
-public struct SessionStatus: Sendable {
+extension Session {
     
-    public let isReady: Bool
-    
-    public let message: String
-    
-    
-    init(parser: JSONParser) throws {
-        self.isReady = try parser.object("value")["ready", .bool]
-        self.message = try parser.object("value")["message"]
+    public struct Status: Sendable {
+        
+        public let isReady: Bool
+        
+        public let message: String
+        
+        
+        init(parser: JSONParser) throws {
+            self.isReady = try parser.object("value")["ready", .bool]
+            self.message = try parser.object("value")["message"]
+        }
+        
     }
-    
 }

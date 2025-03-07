@@ -11,6 +11,7 @@ import FinderItem
 
 
 let driver = WebDriver.Firefox()
+    .pageLoadStrategy(.eager)
     .profile(location: "/Users/vaida/Library/Application Support/Firefox/Profiles/2hzm7hvo.Default User")
 //    .profile(location: "/Users/vaida/Library/Caches/Firefox/Profiles/2hzm7hvo.Default User")
 
@@ -20,6 +21,7 @@ do {
     try await session.open(url: URL(string: "https://www.google.com")!)
     let window = try await session.window
     let element = try await window.findElement(where: { $0.tag == "textarea" && $0.title == "Search" })
+    try await element.write("Swift")
     
     try await element.screenshot().write(to: .desktopDirectory/"file.png")
     

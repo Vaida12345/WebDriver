@@ -15,13 +15,44 @@ extension Session.Window {
     ///
     /// > First Responder:
     /// > Unless stated otherwise, the first responder is switched to the window in which `self` locates.
+    ///
+    /// ## Topics
+    /// ### Locators
+    /// ### Locators
+    /// - ``findElement(where:)-8rmlq``
+    /// - ``findElements(where:)-794xe``
+    /// - <doc:Locator>
+    ///
+    /// ### State
+    /// - ``isSelected``
+    /// - ``isEnabled``
+    ///
+    /// ### Attribute
+    /// - ``tag``
+    /// - ``text``
+    /// - ``label``
+    /// - ``frame``
+    /// - ``load(_:at:)-43sms``
+    ///
+    /// ### Interaction
+    /// - ``click()``
+    /// - ``write(_:terminator:)``
+    /// - ``clear()``
+    ///
+    /// ### Render
+    /// - ``screenshot()``
+    ///
+    /// ### Structures
+    /// - ``LoadSource``
+    /// - ``LoadableAttribute``
+    /// - ``Locator``
     public struct Element: Sendable {
         
         /// The element id.
         let id: String
         
         /// The window on which the element appears.
-        public let window: Session.Window
+        let window: Session.Window
         
         
         @discardableResult
