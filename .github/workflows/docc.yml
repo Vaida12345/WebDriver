@@ -9,7 +9,7 @@ jobs:
 
     env:
       # The DocC target, change this to your target.
-      DocC_Target: FinderItem
+      DocC_Target: WebDriver
       # on complete, the webpage is located at `https://vaida12345.github.io/<repo>/documentation/<target_lowercased>`
       
     steps:
