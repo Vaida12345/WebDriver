@@ -2,7 +2,7 @@
 
 Similar to Selenium, this package is a Swift wrapper for the WebDriver protocol, allowing browser automations.
 
-### Getting Started
+## 101
 
 Let's start by defining the driver we would like to use, along with the parameters.
 
@@ -68,3 +68,24 @@ And boolean operations, including
 - `||`
 - `!`
 
+
+## Getting Started
+
+`WebDriver` uses [Swift Package Manager](https://www.swift.org/documentation/package-manager/) as its build tool. If you want to import in your own project, it's as simple as adding a `dependencies` clause to your `Package.swift`:
+```swift
+dependencies: [
+    .package(url: "https://www.github.com/Vaida12345/WebDriver.git", branch: "main")
+]
+```
+and then adding the appropriate module to your target dependencies.
+
+### Using Xcode Package support
+
+You can add this framework as a dependency to your Xcode project by clicking File -> Swift Packages -> Add Package Dependency. The package is located at:
+```
+https://www.github.com/Vaida12345/WebDriver
+```
+
+## Documentation
+
+This package uses [DocC](https://www.swift.org/documentation/docc/) for documentation. [View on Github Pages](https://vaida12345.github.io/WebDriver/documentation/webdriver/)
