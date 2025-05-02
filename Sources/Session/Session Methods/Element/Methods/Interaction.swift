@@ -53,4 +53,9 @@ extension Element {
         try await self.parser(.post, "value", json: ["text" : text, "value" : Array(text).map({ String($0) })])
     }
     
+    /// Scrolls the element into view.
+    public func scrollIntoView() async throws {
+        let _ = try await self.window.execute("\(self).scrollIntoView();")
+    }
+    
 }

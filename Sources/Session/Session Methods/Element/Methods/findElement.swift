@@ -32,6 +32,15 @@ extension Element {
         try await findElements(where: { predicate($0).makeQuery() })
     }
     
+    /// The direct children.
+    public var children: [Session.Window.Element] {
+        get async throws {
+            let (data, _) = try await self.window.session.data(.post, "/session/\(self.window.session.id)/element/\(self.id)/element", json: ["using": "xpath", "value": "./*"])
+            
+            return try JSONParser(data: data).array("value").map({ try Element(parser: $0, window: self.window) })
+        }
+    }
+    
     /// Find the elements in the current element.
     public func findElements(where predicate: @Sendable (Session.Window.Element.LocatorProxy) -> Session.Window.Element.Query) async throws -> [Session.Window.Element] {
         try await self.window.becomeFirstResponder()

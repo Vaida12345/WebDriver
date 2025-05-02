@@ -76,6 +76,8 @@ public extension WebDriver.Firefox {
     }
     
     /// Start with the profile with the given path.
+    ///
+    /// - Warning: The API may return error when an instance with the same profile is open.
     func profile(location: FinderItem) -> WebDriver.Firefox {
         self.appendingFirefoxArg(arg: "-profile")
             .appendingFirefoxArg(arg: location.path)

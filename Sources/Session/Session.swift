@@ -76,8 +76,6 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
         let results = try await self.data(.post, "session", json: ["capabilities": ["alwaysMatch" : driver.capabilities]])
         let parser = try JSONParser(data: results.0)
         self.id = try parser.object("value")["sessionId"]
-        
-        print(parser)
     }
     
     

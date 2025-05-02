@@ -32,6 +32,7 @@ extension Session {
     ///
     /// ### Document
     /// - ``pageSource``
+    /// - ``execute(_:async:)``
     /// - ``execute(_:args:async:)``
     /// - ``screenshot()``
     /// - ``render(orientation:scale:includesBackground:width:height:scaleToFit:margin:)``

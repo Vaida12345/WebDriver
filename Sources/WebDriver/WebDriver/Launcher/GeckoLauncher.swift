@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import OSLog
 
 
 final class GeckoLauncher: WebDriverLauncher {
@@ -43,9 +44,15 @@ final class GeckoLauncher: WebDriverLauncher {
                 continue
             }
             
+            let logger = Logger(subsystem: "GeckoLauncher", category: #function)
+            logger.info("geckodriver launched at \(url):\(port)")
+            
             self.url = URL(string: "\(url)")!
             self.port = UInt16(port)!
             self.manager = manager
+            self.manager.terminationHandler = { _ in
+                logger.info("geockodriver terminated")
+            }
             return
         }
     }

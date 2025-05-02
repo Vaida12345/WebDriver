@@ -14,7 +14,7 @@ import Darwin
 
 /// A convenient interface to run shell.
 ///
-/// - Important: One `ShellManager` can only deal with one task at a time.
+/// - Important: One `ShellManager` can only deal with one task at a time. Such task is terminated when a `ShellManager` is deallocated.
 ///
 /// **Initialization**
 ///
@@ -111,6 +111,7 @@ internal final class ShellManager: Equatable, Hashable, Identifiable, @unchecked
     }
     
     deinit {
+        task.terminate()
         task.terminationHandler = nil
     }
     
