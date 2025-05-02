@@ -35,7 +35,7 @@ extension Element {
     /// The direct children.
     public var children: [Session.Window.Element] {
         get async throws {
-            let (data, _) = try await self.window.session.data(.post, "/session/\(self.window.session.id)/element/\(self.id)/element", json: ["using": "xpath", "value": "./*"])
+            let (data, _) = try await self.window.session.data(.post, "/session/\(self.window.session.id)/element/\(self.id)/elements", json: ["using": "xpath", "value": "./*"])
             
             return try JSONParser(data: data).array("value").map({ try Element(parser: $0, window: self.window) })
         }
@@ -48,7 +48,7 @@ extension Element {
         let proxy = Element.LocatorProxy()
         let query = predicate(proxy)
         
-        let (data, _) = try await self.window.session.data(.post, "/session/\(self.window.session.id)/element/\(self.id)/element", json: ["using": query.locator.rawValue, "value": query.value])
+        let (data, _) = try await self.window.session.data(.post, "/session/\(self.window.session.id)/element/\(self.id)/elements", json: ["using": query.locator.rawValue, "value": query.value])
         
         return try JSONParser(data: data).array("value").map({ try Element(parser: $0, window: self.window) })
     }

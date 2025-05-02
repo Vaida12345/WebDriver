@@ -32,12 +32,12 @@ extension Session.Window {
     /// > The first responder is switched to `self`.
     ///
     /// - SeeAlso: Use string interpolation to form commands: ``Session/Window-swift.struct/execute(_:async:)``
-    public func execute(_ command: String, args: [Any], async: Bool = false) async throws -> JSONParser {
+    public func execute(_ command: String, args: [Any], async: Bool = false) async throws -> sending JSONParser {
         try await self.becomeFirstResponder()
         
         let (data, _) = try await self.session.data(
             .post,
-            "session/\(self.session.id)/execute/\(async ? "async" : "async")",
+            "session/\(self.session.id)/execute/\(async ? "async" : "sync")",
             json: ["script" : command, "args" : args]
         )
         return try JSONParser(data: data)

@@ -26,6 +26,11 @@ extension Element {
         try await self.parser(.post, "click")
     }
     
+    /// Sends a Javascript code execution that forces clicks.
+    public func forcedClick() async throws {
+        let _ = try await self.window.execute("\(self).click();")
+    }
+    
     /// Clears the text content of an input or textarea element in the W3C WebDriver standard.
     ///
     /// This command removes any existing value from the specified element, simulating a user clearing the field manually.

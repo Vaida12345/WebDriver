@@ -97,7 +97,7 @@ extension Element {
     
     
     /// Load the attribute.
-    public func load(_ attribute: LoadableAttribute, at source: LoadSource = .latest) async throws -> String {
+    public func load(_ attribute: LoadableAttribute, at source: LoadSource = .original) async throws -> String {
         switch source {
         case .original:
             try await self.parser(.get, "attribute/\(attribute.rawValue)")!["value"]
@@ -109,7 +109,7 @@ extension Element {
     }
     
     /// Load the attribute.
-    public func load(_ attribute: String, at source: LoadSource = .latest) async throws -> String {
+    public func load(_ attribute: String, at source: LoadSource = .original) async throws -> String {
         switch source {
         case .original:
             try await self.parser(.get, "attribute/\(attribute)")!["value"]

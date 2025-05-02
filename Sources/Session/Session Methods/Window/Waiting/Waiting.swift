@@ -36,6 +36,9 @@ extension Session.Window {
         let startDate = Date()
         let waitPeriod: Duration = .seconds(0.2)
         
+        let proxy = Element.LocatorProxy()
+        let query = predicate(proxy)
+        
         while Date() < startDate.addingTimeInterval(timeout.seconds) {
             do {
                 let element = try await self.findElement(where: predicate)
@@ -57,14 +60,18 @@ extension Session.Window {
             }
         }
         
-        throw WaitingTimeout()
+        throw WaitingTimeout(duration: timeout, query: query)
     }
     
     
-    public struct WaitingTimeout: GenericError {
+    public struct WaitingTimeout: GenericError, @unchecked Sendable {
+        
+        let duration: Duration
+        
+        let query: Element.Query
         
         public var message: String {
-            "Waiting for an element timed out"
+            "Waiting for an element (\(query)) timed out (\(duration.description))"
         }
     }
     

@@ -7,6 +7,7 @@
 
 import Foundation
 import Essentials
+import OSLog
 
 
 /// A connection session.
@@ -93,6 +94,10 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = "{}".data(using: .utf8)
         }
+        
+        let logger = Logger(subsystem: "Session", category: #function)
+        logger.info("Made request: \(request)")
+        
         return request
     }
     
