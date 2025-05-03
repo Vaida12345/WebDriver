@@ -46,7 +46,7 @@ extension Session.Window {
     /// - ``LoadSource``
     /// - ``LoadableAttribute``
     /// - ``Locator``
-    public struct Element: Sendable { // Element should not be `CustomStringConvertable`
+    public struct Element: Sendable { // Element should not be `CustomStringConvertible`
         
         /// The element id.
         let id: String

@@ -27,7 +27,7 @@ extension Element {
     }
     
     /// Sends a Javascript code execution that forces clicks.
-    public func forcedClick() async throws {
+    public func forceClick() async throws {
         let _ = try await self.window.execute("\(self).click();")
     }
     
@@ -49,6 +49,8 @@ extension Element {
     }
     
     /// Writes the given `text` to the field.
+    ///
+    /// - Tip: This method can also be used to select an option of a picker.
     ///
     /// - Parameters:
     ///   - text: The text to input

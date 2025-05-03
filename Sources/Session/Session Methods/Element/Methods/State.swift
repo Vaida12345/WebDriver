@@ -28,4 +28,31 @@ extension Element {
         }
     }
     
+    /// Returns whether the element is displayed.
+    public var isVisible: Bool {
+        get async throws {
+            try await self.parser(.get, "displayed")!["value", .bool]
+        }
+    }
+    
+    public var isClickable: Bool {
+        get async throws {
+            let script = """
+        var e = arguments[0],
+            st = window.getComputedStyle(e),
+            r  = e.getBoundingClientRect(),
+            cx = r.left + r.width/2,
+            cy = r.top  + r.height/2,
+            topEl = document.elementFromPoint(cx, cy);
+        return !e.disabled
+        && st.display!=\"none\"
+        && st.visibility!=\"hidden\"
+        && r.width>0 && r.height>0
+        && (e===topEl || e.contains(topEl));
+      """
+            
+            return try await self.window.execute(script, args: [["element-6066-11e4-a52e-4f735466cecf" : self.id]])["value", .bool]
+        }
+    }
+    
 }

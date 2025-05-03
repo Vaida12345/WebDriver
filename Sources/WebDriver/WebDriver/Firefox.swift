@@ -7,12 +7,13 @@
 
 import Foundation
 import FinderItem
+import ZIPFoundation
 
 
 extension WebDriver {
     
     /// The Firefox WebDriver.
-    public struct Firefox: WebDriverProtocol {
+    public struct Firefox: WebDriverProtocol, @unchecked Sendable {
         
         public var capabilities: [String : Any]
         
@@ -78,9 +79,18 @@ public extension WebDriver.Firefox {
     /// Start with the profile with the given path.
     ///
     /// - Warning: The API may return error when an instance with the same profile is open.
-    func profile(location: FinderItem) -> WebDriver.Firefox {
+    func profile(noCopying location: FinderItem) -> WebDriver.Firefox {
         self.appendingFirefoxArg(arg: "-profile")
             .appendingFirefoxArg(arg: location.path)
+    }
+    
+    /// Start with the profile with the given path.
+    ///
+    /// This implementation will create a temp copy of the profile to avoid conflicts.
+    func profile(location: FinderItem) async throws -> WebDriver.Firefox {
+        let base64 = try await zipAndBase64Encode(directoryURL: location.url)
+        
+        return self.appendingFirefoxCapability(key: "profile", value: base64)
     }
     
     /// Bypass profile manager and launch application with the profile named `name`.
@@ -123,4 +133,27 @@ public extension WebDriver.Firefox {
         self.appendingFirefoxArg(arg: "-private-window")
     }
     
+}
+
+
+fileprivate func zipAndBase64Encode(directoryURL: URL) async throws -> String {
+    let fileManager = FileManager.default
+    
+    // 1) Create a unique temp-file URL for the .zip
+    let tempZipURL = fileManager
+        .temporaryDirectory
+        .appendingPathComponent(UUID().uuidString)
+        .appendingPathExtension("zip")
+    
+    // 2) Zip the folder
+    try fileManager.zipItem(at: directoryURL, to: tempZipURL, shouldKeepParent: false)
+    
+    // 3) Load the zip into Data
+    let zipData = try Data(contentsOf: tempZipURL)
+    
+    // 4) Cleanup temp
+    try? fileManager.removeItem(at: tempZipURL)
+    
+    // 5) Base64-encode
+    return zipData.base64EncodedString()
 }

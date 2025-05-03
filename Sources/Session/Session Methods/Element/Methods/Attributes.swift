@@ -337,6 +337,12 @@ extension Element {
         
         /// Defines how text in a textarea should be wrapped
         case wrap
+        
+        /// The HTML content *including* the element's own tags and everything inside it.
+        case outerHTML
+        
+        /// The HTML content *inside* an element, *excluding* the element's own tag.
+        case innerHTML
     }
     
 }

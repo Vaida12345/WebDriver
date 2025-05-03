@@ -11,7 +11,7 @@ import Foundation
 
 extension Session.Window {
     
-    public enum WaitCondition {
+    public enum ElementWaitCondition {
         case elementPresence
         case elementEnabled
     }
@@ -19,7 +19,7 @@ extension Session.Window {
     
     /// - throws: On time out, throws ``WaitingTimeout``.
     public func wait(
-        until condition: WaitCondition,
+        until condition: ElementWaitCondition,
         timeout: Duration,
         where predicate: @Sendable (Element.LocatorProxy) -> any LocatorQuery
     ) async throws -> Element {
@@ -29,7 +29,7 @@ extension Session.Window {
     
     /// - throws: On time out, throws ``WaitingTimeout``.
     public func wait(
-        until condition: WaitCondition,
+        until condition: ElementWaitCondition,
         timeout: Duration,
         where predicate: @Sendable (Element.LocatorProxy) -> Element.Query
     ) async throws -> Element {
@@ -68,10 +68,14 @@ extension Session.Window {
         
         let duration: Duration
         
-        let query: Element.Query
+        let query: Element.Query?
         
         public var message: String {
-            "Waiting for an element (\(query)) timed out (\(duration.description))"
+            if let query {
+                "Waiting for an element (\(query)) timed out (\(duration.description))"
+            } else {
+                "Waiting timed out (\(duration.description))"
+            }
         }
     }
     

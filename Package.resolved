@@ -1,13 +1,13 @@
 {
-  "originHash" : "94add0cbadbd00d99431876673dedfffec07cead2fc72b5376f7671371fa4991",
+  "originHash" : "4b4a85c1c1de326fcb25d5fa6965cacbb4bad0e4371100000bc3c374f175690d",
   "pins" : [
     {
       "identity" : "essentials",
       "kind" : "remoteSourceControl",
       "location" : "https://www.github.com/Vaida12345/Essentials",
       "state" : {
-        "revision" : "a837336036efb5ebfb2505e05fdfdad2ed8b7e16",
-        "version" : "1.0.26"
+        "revision" : "43f396bf4b20d67a639190357df99d806a7a2004",
+        "version" : "1.0.28"
       }
     },
     {
@@ -26,6 +26,15 @@
       "state" : {
         "revision" : "c3c562710f058caa9fcbaba2c20ba3e3f404d7ec",
         "version" : "1.0.2"
+      }
+    },
+    {
+      "identity" : "zipfoundation",
+      "kind" : "remoteSourceControl",
+      "location" : "https://www.github.com/weichsel/ZIPFoundation",
+      "state" : {
+        "revision" : "02b6abe5f6eef7e3cbd5f247c5cc24e246efcfe0",
+        "version" : "0.9.19"
       }
     }
   ],

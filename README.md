@@ -91,3 +91,8 @@ https://www.github.com/Vaida12345/WebDriver
 ## Documentation
 
 This package uses [DocC](https://www.swift.org/documentation/docc/) for documentation. [View on Github Pages](https://vaida12345.github.io/WebDriver/documentation/webdriver/)
+
+
+## Credits
+
+- [ZipFoundation](https://github.com/weichsel/ZIPFoundation)
