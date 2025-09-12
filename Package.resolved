@@ -1,37 +1,46 @@
 {
-  "originHash" : "4b4a85c1c1de326fcb25d5fa6965cacbb4bad0e4371100000bc3c374f175690d",
+  "originHash" : "18da149cad2305a947cb5c28dfc073341fd8027482303633a49feff49b38d28e",
   "pins" : [
+    {
+      "identity" : "detaileddescription",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Vaida12345/DetailedDescription.git",
+      "state" : {
+        "revision" : "d4ae923e6cc5dadc7219d54cbf31912889f7bf33",
+        "version" : "2.1.1"
+      }
+    },
     {
       "identity" : "essentials",
       "kind" : "remoteSourceControl",
-      "location" : "https://www.github.com/Vaida12345/Essentials",
+      "location" : "https://github.com/Vaida12345/Essentials",
       "state" : {
-        "revision" : "43f396bf4b20d67a639190357df99d806a7a2004",
-        "version" : "1.0.28"
+        "revision" : "214c8d8dd021fb34fa6c12126e240fdc1557ff93",
+        "version" : "1.1.8"
       }
     },
     {
       "identity" : "finderitem",
       "kind" : "remoteSourceControl",
-      "location" : "https://www.github.com/Vaida12345/FinderItem",
+      "location" : "https://github.com/Vaida12345/FinderItem",
       "state" : {
-        "revision" : "480f7028c0d49545baf1a7fb13f4bd9c8adad4f7",
-        "version" : "1.0.13"
+        "revision" : "280d40db9891e69714573c7f3a435a4254a9b838",
+        "version" : "1.2.5"
       }
     },
     {
       "identity" : "nativeimage",
       "kind" : "remoteSourceControl",
-      "location" : "https://www.github.com/Vaida12345/NativeImage",
+      "location" : "https://github.com/Vaida12345/NativeImage",
       "state" : {
-        "revision" : "c3c562710f058caa9fcbaba2c20ba3e3f404d7ec",
-        "version" : "1.0.2"
+        "revision" : "85534ff1cf306ed9e674c5dc782dd0ca8bda423d",
+        "version" : "1.0.3"
       }
     },
     {
       "identity" : "zipfoundation",
       "kind" : "remoteSourceControl",
-      "location" : "https://www.github.com/weichsel/ZIPFoundation",
+      "location" : "https://github.com/weichsel/ZIPFoundation",
       "state" : {
         "revision" : "02b6abe5f6eef7e3cbd5f247c5cc24e246efcfe0",
         "version" : "0.9.19"

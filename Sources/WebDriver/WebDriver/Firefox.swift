@@ -13,6 +13,12 @@ import ZIPFoundation
 extension WebDriver {
     
     /// The Firefox WebDriver.
+    ///
+    /// > Note:
+    /// > To use FireFox WebDriver, please ensure you have `geckodriver` installed, you can install it via
+    /// > ```sh
+    /// >  $ brew install geckodriver
+    /// > ```
     public struct Firefox: WebDriverProtocol, @unchecked Sendable {
         
         public var capabilities: [String : Any]

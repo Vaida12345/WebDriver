@@ -251,35 +251,6 @@ internal final class ShellManager: Equatable, Hashable, Identifiable, @unchecked
         return manager
     }
     
-    /// Runs a sequence of commands in terminal.
-    ///
-    /// You do not have any control to the command once dispatched. The function would return after the completion of execution.
-    ///
-    /// - throws: ``ScriptError``
-    ///
-    /// ## Topics
-    /// ### Potential Error
-    /// - ``ScriptError``
-    public static func runInTerminal(lines: [String]) throws -> NSAppleEventDescriptor? {
-        let script = """
-            tell application "Terminal"
-                activate
-                do script "\(lines.joined(separator: "; "))"
-            end tell
-            """
-        
-        let appleScript = NSAppleScript(source: script)
-        
-        var error: NSDictionary?
-        let result = appleScript?.executeAndReturnError(&error)
-        
-        if let error {
-            throw ScriptError(title: error["NSAppleScriptErrorBriefMessage"] as? String ?? "some Apple Script Error", message: error["NSAppleScriptErrorMessage"] as? String ?? "\(error)")
-        }
-        
-        return result
-    }
-    
     
     public struct ScriptError: GenericError {
         public let title: String
