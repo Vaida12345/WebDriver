@@ -67,14 +67,15 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
     }
     
     
-    init(launcher: any WebDriverLauncher) async throws {
+    init(launcher: any WebDriverLauncher, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
         self.session = URLSession(configuration: .ephemeral)
         self.id = ""
         self.launcher = launcher
         
         let driver = launcher.driver
         
-        let results = try await self.data(.post, "session", json: ["capabilities": ["alwaysMatch" : driver.capabilities]])
+        let results = try await self.data(.post, "session", json: ["capabilities": ["alwaysMatch" : driver.capabilities]],
+                                          context: ServerError.Context(fileID: fileID, line: line, function: function))
         let parser = try JSONParser(data: results.0)
         self.id = try parser.object("value")["sessionId"]
     }
@@ -104,7 +105,8 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
     func data(
         _ method: HTTPMethod,
         _ uri: String,
-        data: Data?
+        data: Data?,
+        context: ServerError.Context
     ) async throws -> (Data, URLResponse) {
         let request = self.makeRequest(method, uri, data: data)
         let (data, response) = try await self.session.data(for: request)
@@ -118,7 +120,7 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
         case 400, 404, 405, 500:
             do {
                 let parser = try JSONParser(data: data).object("value")
-                throw try ServerError(parser: parser, response: response)
+                throw try ServerError(parser: parser, response: response, context: context)
             } catch let error as ServerError {
                 throw error
             } catch {
@@ -133,9 +135,10 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
     func data(
         _ method: HTTPMethod,
         _ uri: String,
-        json: [String : Any]
+        json: [String : Any],
+        context: ServerError.Context
     ) async throws -> (Data, URLResponse) {
-        try await self.data(method, uri, data: JSONSerialization.data(withJSONObject: json))
+        try await self.data(method, uri, data: JSONSerialization.data(withJSONObject: json), context: context)
     }
     
 }

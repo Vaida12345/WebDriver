@@ -16,13 +16,18 @@ extension Element {
     }
     
     /// Find the element in the current element.
-    public func findElement(where predicate: @Sendable (Session.Window.Element.LocatorProxy) -> Session.Window.Element.Query) async throws -> Session.Window.Element {
+    public func findElement(where predicate: @Sendable (Session.Window.Element.LocatorProxy) -> Session.Window.Element.Query, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> Session.Window.Element {
         try await self.window.becomeFirstResponder()
         
         let proxy = Element.LocatorProxy()
         let query = predicate(proxy)
         
-        let (data, _) = try await self.window.session.data(.post, "/session/\(self.window.session.id)/element/\(self.id)/element", json: ["using": query.locator.rawValue, "value": query.value])
+        let (data, _) = try await self.window.session.data(
+            .post,
+            "/session/\(self.window.session.id)/element/\(self.id)/element",
+            json: ["using": query.locator.rawValue, "value": query.value],
+            context: ServerError.Context(fileID: fileID, line: line, function: function)
+        )
         
         return try Element(parser: JSONParser(data: data).object("value"), window: self.window)
     }
@@ -35,7 +40,12 @@ extension Element {
     /// The direct children.
     public var children: [Session.Window.Element] {
         get async throws {
-            let (data, _) = try await self.window.session.data(.post, "/session/\(self.window.session.id)/element/\(self.id)/elements", json: ["using": "xpath", "value": "./*"])
+            let (data, _) = try await self.window.session.data(
+                .post,
+                "/session/\(self.window.session.id)/element/\(self.id)/elements",
+                json: ["using": "xpath", "value": "./*"],
+                context: ServerError.Context(fileID: #fileID, line: #line, function: #function)
+            )
             
             return try JSONParser(data: data).array("value").map({ try Element(parser: $0, window: self.window) })
         }

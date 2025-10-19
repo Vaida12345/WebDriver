@@ -24,7 +24,10 @@ public struct ServerError: GenericError, @unchecked Sendable {
     /// The stack trace provided by the server.
     public let stackTrace: String
     
+    /// Additionally data provided by the server.
     public let data: JSONParser?
+    
+    let context: Context
     
     public var title: String? {
         self.code.description
@@ -38,9 +41,17 @@ public struct ServerError: GenericError, @unchecked Sendable {
             stream.write(message)
         }
         
+        stream.write("\nContext: \(context)")
+        stream.write("\nstatusCode: \(self.statusCode)")
+        
         if !stackTrace.isEmpty {
-            stream.write("\n\tStack trace:\n")
+            stream.write("\nStack trace:\n")
             stream.write(stackTrace)
+        }
+        
+        if let data {
+            stream.write("\nData:\n")
+            stream.write(data.description)
         }
     }
     
@@ -51,12 +62,13 @@ public struct ServerError: GenericError, @unchecked Sendable {
     }
     
     
-    init(parser: JSONParser, response: HTTPURLResponse) throws {
+    init(parser: JSONParser, response: HTTPURLResponse, context: Context) throws {
         self.statusCode = response.statusCode
         self.code = try ErrorCode(rawValue: parser["error"])
         self.message = try parser["message"]
         self.stackTrace = try parser["stacktrace"]
         self.data = try? parser.object("data")
+        self.context = context
     }
     
     
@@ -71,6 +83,23 @@ public struct ServerError: GenericError, @unchecked Sendable {
 
 
 extension ServerError {
+    
+    /// The Swift context from which the error occurred.
+    struct Context: CustomStringConvertible {
+        
+        let fileID: StaticString
+        
+        let line: Int
+        
+        let function: StaticString
+        
+        
+        var description: String {
+            "\(fileID):\(line) in \(function)"
+        }
+        
+    }
+    
     
     /// The error code defined by the web driver protocol.
     public enum ErrorCode: Equatable, CustomStringConvertible {
