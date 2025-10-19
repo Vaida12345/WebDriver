@@ -7,6 +7,7 @@
 
 import Foundation
 import Essentials
+import Runtime
 
 
 /// Indicates the error received from server.
@@ -27,7 +28,7 @@ public struct ServerError: GenericError, @unchecked Sendable {
     /// Additionally data provided by the server.
     public let data: JSONParser?
     
-    let context: Context
+    public let backtrace: Backtrace?
     
     public var title: String? {
         self.code.description
@@ -41,12 +42,16 @@ public struct ServerError: GenericError, @unchecked Sendable {
             stream.write(message)
         }
         
-        stream.write("\nContext: \(context)")
         stream.write("\nstatusCode: \(self.statusCode)")
         
         if !stackTrace.isEmpty {
             stream.write("\nStack trace:\n")
             stream.write(stackTrace)
+        }
+        
+        if let backtrace = backtrace?.symbolicated(options: .showInlineFrames) {
+            stream.write("\nBack trace:\n")
+            stream.write(backtrace.frames.map(\.description).joined(separator: "\n"))
         }
         
         if let data {
@@ -62,13 +67,13 @@ public struct ServerError: GenericError, @unchecked Sendable {
     }
     
     
-    init(parser: JSONParser, response: HTTPURLResponse, context: Context) throws {
+    init(parser: JSONParser, response: HTTPURLResponse) throws {
         self.statusCode = response.statusCode
         self.code = try ErrorCode(rawValue: parser["error"])
         self.message = try parser["message"]
         self.stackTrace = try parser["stacktrace"]
         self.data = try? parser.object("data")
-        self.context = context
+        self.backtrace = try? Backtrace.capture()
     }
     
     

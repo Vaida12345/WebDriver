@@ -25,8 +25,7 @@ extension Element {
         let (data, _) = try await self.window.session.data(
             .post,
             "/session/\(self.window.session.id)/element/\(self.id)/element",
-            json: ["using": query.locator.rawValue, "value": query.value],
-            context: ServerError.Context(fileID: fileID, line: line, function: function)
+            json: ["using": query.locator.rawValue, "value": query.value]
         )
         
         return try Element(parser: JSONParser(data: data).object("value"), window: self.window)
@@ -43,8 +42,7 @@ extension Element {
             let (data, _) = try await self.window.session.data(
                 .post,
                 "/session/\(self.window.session.id)/element/\(self.id)/elements",
-                json: ["using": "xpath", "value": "./*"],
-                context: ServerError.Context(fileID: #fileID, line: #line, function: #function)
+                json: ["using": "xpath", "value": "./*"]
             )
             
             return try JSONParser(data: data).array("value").map({ try Element(parser: $0, window: self.window) })

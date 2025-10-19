@@ -74,8 +74,7 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
         
         let driver = launcher.driver
         
-        let results = try await self.data(.post, "session", json: ["capabilities": ["alwaysMatch" : driver.capabilities]],
-                                          context: ServerError.Context(fileID: fileID, line: line, function: function))
+        let results = try await self.data(.post, "session", json: ["capabilities": ["alwaysMatch" : driver.capabilities]])
         let parser = try JSONParser(data: results.0)
         self.id = try parser.object("value")["sessionId"]
     }
@@ -105,8 +104,7 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
     func data(
         _ method: HTTPMethod,
         _ uri: String,
-        data: Data?,
-        context: ServerError.Context
+        data: Data?
     ) async throws -> (Data, URLResponse) {
         let request = self.makeRequest(method, uri, data: data)
         let (data, response) = try await self.session.data(for: request)
@@ -120,7 +118,7 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
         case 400, 404, 405, 500:
             do {
                 let parser = try JSONParser(data: data).object("value")
-                throw try ServerError(parser: parser, response: response, context: context)
+                throw try ServerError(parser: parser, response: response)
             } catch let error as ServerError {
                 throw error
             } catch {
@@ -135,10 +133,9 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
     func data(
         _ method: HTTPMethod,
         _ uri: String,
-        json: [String : Any],
-        context: ServerError.Context
+        json: [String : Any]
     ) async throws -> (Data, URLResponse) {
-        try await self.data(method, uri, data: JSONSerialization.data(withJSONObject: json), context: context)
+        try await self.data(method, uri, data: JSONSerialization.data(withJSONObject: json))
     }
     
 }
