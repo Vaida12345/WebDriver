@@ -58,25 +58,30 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
     /// The shared url session for this instance. All connection will be transmitted through this session.
     internal let session: URLSession
     
+    public private(set) var identity: Identity
+    
     /// The session ID identified by the backend.
-    public var id: String
-    
-    
-    public var description: String {
-        "Session<\(type(of: launcher.driver))>"
+    public var id: String {
+        self.identity.id
     }
     
     
-    init(launcher: any WebDriverLauncher, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
+    public var description: String {
+        "Session<\(type(of: launcher.driver))>(identity: \(self.identity))"
+    }
+    
+    
+    init(launcher: any WebDriverLauncher, context: SwiftContext, invoker: StaticString) async throws {
         self.session = URLSession(configuration: .ephemeral)
-        self.id = ""
+        self.identity = Identity(id: "", creation: context)
         self.launcher = launcher
         
         let driver = launcher.driver
         
-        let results = try await self.data(.post, "session", json: ["capabilities": ["alwaysMatch" : driver.capabilities]])
+        let results = try await self.data(.post, "session", json: ["capabilities": ["alwaysMatch" : driver.capabilities]],
+                                          context: context, origin: .session(self), invoker: invoker)
         let parser = try JSONParser(data: results.0)
-        self.id = try parser.object("value")["sessionId"]
+        self.identity.id = try parser.object("value")["sessionId"]
     }
     
     
@@ -104,7 +109,10 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
     func data(
         _ method: HTTPMethod,
         _ uri: String,
-        data: Data?
+        data: Data?,
+        context: SwiftContext,
+        origin: WebDriverError.Origin,
+        invoker: StaticString
     ) async throws -> (Data, URLResponse) {
         let request = self.makeRequest(method, uri, data: data)
         let (data, response) = try await self.session.data(for: request)
@@ -118,8 +126,8 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
         case 400, 404, 405, 500:
             do {
                 let parser = try JSONParser(data: data).object("value")
-                throw try ServerError(parser: parser, response: response)
-            } catch let error as ServerError {
+                throw try WebDriverError(parser: parser, response: response, context: context, origin: origin, invoker: invoker)
+            } catch let error as WebDriverError {
                 throw error
             } catch {
                 throw SessionError.badResponse(code: response.statusCode, message: String(data: data, encoding: .utf8))
@@ -133,9 +141,12 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
     func data(
         _ method: HTTPMethod,
         _ uri: String,
-        json: [String : Any]
+        json: [String : Any],
+        context: SwiftContext,
+        origin: WebDriverError.Origin,
+        invoker: StaticString
     ) async throws -> (Data, URLResponse) {
-        try await self.data(method, uri, data: JSONSerialization.data(withJSONObject: json))
+        try await self.data(method, uri, data: JSONSerialization.data(withJSONObject: json), context: context, origin: origin, invoker: invoker)
     }
     
 }
@@ -150,4 +161,11 @@ extension Session {
         case delete = "DELETE"
     }
     
+}
+
+
+extension Session: Equatable {
+    public static func == (lhs: Session, rhs: Session) -> Bool {
+        lhs.id == rhs.id
+    }
 }

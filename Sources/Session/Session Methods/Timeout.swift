@@ -10,6 +10,7 @@ import Essentials
 
 
 extension Session {
+    
     public struct Timeout: Sendable, CustomStringConvertible, Equatable {
         
         /// The maximum time that WebDriver will wait for a synchronous JavaScript to execute before throwing an error.
@@ -95,13 +96,16 @@ extension Session {
     
     public var timeout: Timeout {
         get async throws {
-            let (data, _) = try await self.data(.get, "session/\(id)/timeouts", data: nil)
+            let (data, _) = try await self.data(.get, "session/\(id)/timeouts", data: nil, context: .unavailable, origin: .session(self), invoker: #function)
             return try Timeout(parser: JSONParser(data: data))
         }
     }
     
-    public func set(timeout: Timeout) async throws {
-        let _ = try await self.data(.post, "session/\(id)/timeouts", json: timeout.encode())
+    public func set(timeout: Timeout, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
+        let _ = try await self.data(.post, "session/\(id)/timeouts", json: timeout.encode(),
+                                    context: SwiftContext(fileID: fileID, line: line, function: function),
+                                    origin: .session(self),
+                                    invoker: #function)
     }
     
 }

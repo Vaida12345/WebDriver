@@ -17,21 +17,21 @@ extension Element {
     /// - term Otherwise: `false`.
     public var isSelected: Bool {
         get async throws {
-            return try await self.parser(.get, "selected")!["value", .bool]
+            return try await self.parser(.get, "selected", context: .unavailable)!["value", .bool]
         }
     }
     
     /// Returns whether the element is enabled.
     public var isEnabled: Bool {
         get async throws {
-            try await self.parser(.get, "enabled")!["value", .bool]
+            try await self.parser(.get, "enabled", context: .unavailable)!["value", .bool]
         }
     }
     
     /// Returns whether the element is displayed.
     public var isVisible: Bool {
         get async throws {
-            try await self.parser(.get, "displayed")!["value", .bool]
+            try await self.parser(.get, "displayed", context: .unavailable)!["value", .bool]
         }
     }
     

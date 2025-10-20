@@ -21,7 +21,7 @@ extension Session.Window {
         get async throws {
             try await self.becomeFirstResponder()
             
-            let (data, _) = try await self.session.data(.get, "session/\(self.session.id)/source", data: nil)
+            let (data, _) = try await self.session.data(.get, "session/\(self.session.id)/source", data: nil, context: .unavailable, origin: .window(self), invoker: #function)
             return try JSONParser(data: data)["value"]
         }
     }
@@ -32,13 +32,16 @@ extension Session.Window {
     /// > The first responder is switched to `self`.
     ///
     /// - SeeAlso: Use string interpolation to form commands: ``Session/Window-swift.struct/execute(_:async:)``
-    public func execute(_ command: String, args: [Any], async: Bool = false) async throws -> sending JSONParser {
-        try await self.becomeFirstResponder()
+    public func execute(_ command: String, args: [Any], async: Bool = false, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> sending JSONParser {
+        try await self.becomeFirstResponder(fileID: fileID, line: line, function: function)
         
         let (data, _) = try await self.session.data(
             .post,
             "session/\(self.session.id)/execute/\(async ? "async" : "sync")",
-            json: ["script" : command, "args" : args]
+            json: ["script" : command, "args" : args],
+            context: SwiftContext(fileID: fileID, line: line, function: function),
+            origin: .window(self),
+            invoker: #function
         )
         return try JSONParser(data: data)
     }
@@ -49,10 +52,13 @@ extension Session.Window {
     ///
     /// > First Responder:
     /// > The first responder is switched to `self`.
-    public func screenshot() async throws -> sending NativeImage {
-        try await self.becomeFirstResponder()
+    public func screenshot(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> sending NativeImage {
+        try await self.becomeFirstResponder(fileID: fileID, line: line, function: function)
         
-        let (result, _) = try await self.session.data(.get, "session/\(self.session.id)/screenshot", data: nil)
+        let (result, _) = try await self.session.data(.get, "session/\(self.session.id)/screenshot", data: nil,
+                                                      context: SwiftContext(fileID: fileID, line: line, function: function),
+                                                      origin: .window(self),
+                                                      invoker: #function)
         let base64 = try JSONParser(data: result)["value"]
         let data = Data(base64Encoded: base64)!
         return NativeImage(data: data)!

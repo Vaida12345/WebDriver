@@ -24,7 +24,7 @@ extension Session {
     /// - ``id``
     /// - ``type``
     /// - ``description``
-    /// - ``becomeFirstResponder()``
+    /// - ``becomeFirstResponder(fileID: fileID, line: line, function: function)``
     /// - ``close()``
     ///
     /// ### Cookie
@@ -61,7 +61,11 @@ extension Session {
         var session: Session
         
         /// The id that the backend uses to identify it.
-        public let id: String
+        public let identity: Identity
+        
+        public var id: String {
+            self.identity.id
+        }
         
         /// The window type, either `tab` or `window`.
         public var type: WindowType?
@@ -72,7 +76,7 @@ extension Session {
             if let type {
                 description.write(", \(type.rawValue)")
             }
-            return description + ">"
+            return description + ">" + "(id: \(self.identity.id), creation: \(self.identity.creation))"
         }
         
         
@@ -83,6 +87,19 @@ extension Session {
             case window
             
         }
+        
+        init(session: Session, id: String, type: WindowType? = nil, context: SwiftContext) {
+            self.session = session
+            self.identity = Identity(id: id, creation: context)
+            self.type = type
+        }
+    }
+}
+
+
+extension Session.Window: Equatable {
+    public static func == (lhs: Session.Window, rhs: Session.Window) -> Bool {
+        lhs.id == rhs.id
     }
 }
 
@@ -93,17 +110,23 @@ extension Session.Window {
     /// Makes the window the top level browsing context.
     ///
     /// - Important: This does not necessarily mean the window is brought to front. This depends on the individual browser's implementations.
-    public func becomeFirstResponder() async throws {
-        let _ = try await self.session.data(.post, "session/\(self.session.id)/window", json: ["handle" : self.id])
+    public func becomeFirstResponder(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
+        let _ = try await self.session.data(.post, "session/\(self.session.id)/window", json: ["handle" : self.id],
+                                            context: SwiftContext(fileID: fileID, line: line, function: function),
+                                            origin: .window(self),
+                                            invoker: #function)
     }
     
     /// Closes the window.
     ///
     /// This is achieved by making the window first responder and closes the first responder.
-    public func close() async throws {
-        try await self.becomeFirstResponder()
+    public func close(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
+        try await self.becomeFirstResponder(fileID: fileID, line: line, function: function)
         
-        let _ = try await self.session.data(.delete, "session/\(self.session.id)/window", data: nil)
+        let _ = try await self.session.data(.delete, "session/\(self.session.id)/window", data: nil,
+                                            context: SwiftContext(fileID: fileID, line: line, function: function),
+                                            origin: .window(self),
+                                            invoker: #function)
         // returns the closed window handle
     }
     

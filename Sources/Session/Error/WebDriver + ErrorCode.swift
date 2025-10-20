@@ -1,109 +1,12 @@
 //
-//  ServerError.swift
+//  WebDriver + ErrorCode.swift
 //  WebDriver
 //
-//  Created by Vaida on 2/26/25.
+//  Created by Vaida on 2025-10-20.
 //
 
-import Foundation
-import Essentials
-import Runtime
 
-
-/// Indicates the error received from server.
-public struct ServerError: GenericError, @unchecked Sendable {
-    
-    /// The error code defined by the web driver protocol.
-    public let code: ErrorCode
-    
-    /// The HTTP code.
-    public let statusCode: Int
-    
-    /// The error message provided by the server.
-    public let message: String
-    
-    /// The stack trace provided by the server.
-    public let stackTrace: String
-    
-    /// Additionally data provided by the server.
-    public let data: JSONParser?
-    
-    public let backtrace: Backtrace?
-    
-    public var title: String? {
-        self.code.description
-    }
-    
-    
-    public func write(to stream: inout some TextOutputStream) {
-        if let title {
-            stream.write("\(title): \(message)")
-        } else {
-            stream.write(message)
-        }
-        
-        stream.write("\nstatusCode: \(self.statusCode)")
-        
-        if !stackTrace.isEmpty {
-            stream.write("\nStack trace:\n")
-            stream.write(stackTrace)
-        }
-        
-        if let backtrace = backtrace?.symbolicated(options: .showInlineFrames) {
-            stream.write("\nBack trace:\n")
-            stream.write(backtrace.frames.map(\.description).joined(separator: "\n"))
-        }
-        
-        if let data {
-            stream.write("\nData:\n")
-            stream.write(data.description)
-        }
-    }
-    
-    public var description: String {
-        var result = ""
-        self.write(to: &result)
-        return result
-    }
-    
-    
-    init(parser: JSONParser, response: HTTPURLResponse) throws {
-        self.statusCode = response.statusCode
-        self.code = try ErrorCode(rawValue: parser["error"])
-        self.message = try parser["message"]
-        self.stackTrace = try parser["stacktrace"]
-        self.data = try? parser.object("data")
-        self.backtrace = try? Backtrace.capture()
-    }
-    
-    
-    public static func == (_ lhs: ServerError, _ rhs: ServerError) -> Bool {
-        lhs.statusCode == rhs.statusCode &&
-        lhs.title == rhs.title &&
-        lhs.message == rhs.message &&
-        lhs.stackTrace == rhs.stackTrace
-    }
-    
-}
-
-
-extension ServerError {
-    
-    /// The Swift context from which the error occurred.
-    struct Context: CustomStringConvertible {
-        
-        let fileID: StaticString
-        
-        let line: Int
-        
-        let function: StaticString
-        
-        
-        var description: String {
-            "\(fileID):\(line) in \(function)"
-        }
-        
-    }
+extension WebDriverError {
     
     
     /// The error code defined by the web driver protocol.
@@ -328,4 +231,3 @@ extension ServerError {
     }
     
 }
-

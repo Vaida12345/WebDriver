@@ -35,7 +35,7 @@ extension Session.Window {
         get async throws {
             try await self.becomeFirstResponder()
             
-            let (data, _) = try await self.session.data(.get, "session/\(self.session.id)/window/rect", data: nil)
+            let (data, _) = try await self.session.data(.get, "session/\(self.session.id)/window/rect", data: nil, context: .unavailable, origin: .window(self), invoker: #function)
             let parser = try JSONParser(data: data).object("value")
             
             return try CGRect(x: parser["x", .numeric],
@@ -54,8 +54,8 @@ extension Session.Window {
     ///
     /// - Returns: The frame for the first responder (ie, `self`).
     @discardableResult
-    public func setFrame(_ frame: CGRect) async throws -> CGRect {
-        try await self.setFrame(x: frame.origin.x, y: frame.origin.y, width: frame.width, height: frame.height)
+    public func setFrame(_ frame: CGRect, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> CGRect {
+        try await self.setFrame(x: frame.origin.x, y: frame.origin.y, width: frame.width, height: frame.height, fileID: fileID, line: line, function: function)
     }
     
     /// Set the window rect.
@@ -67,8 +67,8 @@ extension Session.Window {
     ///
     /// - Returns: The frame for the first responder (ie, `self`).
     @discardableResult
-    public func setFrame(x: CGFloat?, y: CGFloat?, width: CGFloat?, height: CGFloat?) async throws -> CGRect {
-        try await self.becomeFirstResponder()
+    public func setFrame(x: CGFloat?, y: CGFloat?, width: CGFloat?, height: CGFloat?, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> CGRect {
+        try await self.becomeFirstResponder(fileID: fileID, line: line, function: function)
         
         var parameters: [String: Any] = [:]
         
@@ -77,7 +77,10 @@ extension Session.Window {
         if let width = width { parameters["width"] = width }
         if let height = height { parameters["height"] = height }
         
-        let (data, _) = try await self.session.data(.post, "session/\(self.session.id)/window/rect", json: parameters)
+        let (data, _) = try await self.session.data(.post, "session/\(self.session.id)/window/rect", json: parameters,
+                                                    context: SwiftContext(fileID: fileID, line: line, function: function),
+                                                    origin: .window(self),
+                                                    invoker: #function)
         let parser = try JSONParser(data: data).object("value")
         
         return try CGRect(x: parser["x", .numeric],
@@ -96,10 +99,13 @@ extension Session.Window {
     ///
     /// - Returns: The frame for the first responder (ie, `self`).
     @discardableResult
-    public func maximize() async throws -> CGRect {
-        try await self.becomeFirstResponder()
+    public func maximize(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> CGRect {
+        try await self.becomeFirstResponder(fileID: fileID, line: line, function: function)
         
-        let (data, _) = try await self.session.data(.post, "session/\(self.session.id)/window/maximize", data: nil)
+        let (data, _) = try await self.session.data(.post, "session/\(self.session.id)/window/maximize", data: nil,
+                                                    context: SwiftContext(fileID: fileID, line: line, function: function),
+                                                    origin: .window(self),
+                                                    invoker: #function)
         let parser = try JSONParser(data: data).object("value")
         
         return try CGRect(x: parser["x", .numeric],
@@ -117,10 +123,13 @@ extension Session.Window {
     ///
     /// - Returns: The frame for the first responder (ie, `self`).
     @discardableResult
-    public func minimize() async throws -> CGRect {
-        try await self.becomeFirstResponder()
+    public func minimize(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> CGRect {
+        try await self.becomeFirstResponder(fileID: fileID, line: line, function: function)
         
-        let (data, _) = try await self.session.data(.post, "session/\(self.session.id)/window/minimize", data: nil)
+        let (data, _) = try await self.session.data(.post, "session/\(self.session.id)/window/minimize", data: nil,
+                                                    context: SwiftContext(fileID: fileID, line: line, function: function),
+                                                    origin: .window(self),
+                                                    invoker: #function)
         let parser = try JSONParser(data: data).object("value")
         
         return try CGRect(x: parser["x", .numeric],
@@ -138,10 +147,13 @@ extension Session.Window {
     ///
     /// - Returns: The frame for the first responder (ie, `self`).
     @discardableResult
-    public func fullscreen() async throws -> CGRect {
-        try await self.becomeFirstResponder()
+    public func fullscreen(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> CGRect {
+        try await self.becomeFirstResponder(fileID: fileID, line: line, function: function)
         
-        let (data, _) = try await self.session.data(.post, "session/\(self.session.id)/window/minimize", data: nil)
+        let (data, _) = try await self.session.data(.post, "session/\(self.session.id)/window/minimize", data: nil,
+                                                    context: SwiftContext(fileID: fileID, line: line, function: function),
+                                                    origin: .window(self),
+                                                    invoker: #function)
         let parser = try JSONParser(data: data).object("value")
         
         return try CGRect(x: parser["x", .numeric],

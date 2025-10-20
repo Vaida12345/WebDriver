@@ -27,10 +27,10 @@ public protocol WebDriverProtocol {
     var capabilities: [String : Any] { get set }
     
     /// Creates a new session.
-    func startSession() async throws -> Session
+    func startSession(fileID: StaticString, line: Int, function: StaticString) async throws -> Session
     
     /// Links an existing session.
-    func linkSession(url: URL, port: UInt16) async throws -> Session
+    func linkSession(url: URL, port: UInt16, fileID: StaticString, line: Int, function: StaticString) async throws -> Session
     
     init(capabilities: [String : Any])
     
@@ -66,8 +66,9 @@ public extension WebDriverProtocol {
     }
     
     /// Links an existing session.
-    func linkSession(url: URL = URL(string: "127.0.0.1")!, port: UInt16 = 4444) async throws -> Session {
-        try await Session(launcher: LinkedLauncher(driver: self, url: url, port: port))
+    func linkSession(url: URL = URL(string: "127.0.0.1")!, port: UInt16 = 4444, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> Session {
+        try await Session(launcher: LinkedLauncher(driver: self, url: url, port: port), context: SwiftContext(fileID: fileID, line: line, function: function),
+                          invoker: #function)
     }
     
 }

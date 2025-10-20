@@ -20,8 +20,9 @@ func main() async throws {
     do {
         try await session.open(url: URL(string: "https://www.google.com")!)
         let window = try await session.window
-        let element = try await window.findElement(where: { $0.tag == "textarea1234567" && $0.title == "Search" })
+        let element = try await window.findElement(where: { $0.tag == "textarea" && $0.title == "Search" })
         try await element.write("Swift")
+        let child = try await element.findElement(where: { $0.tag == "213456" })
         
         //    try await Task.sleep(for: .seconds(10))
     } catch {

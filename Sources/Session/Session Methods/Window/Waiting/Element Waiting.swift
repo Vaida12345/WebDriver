@@ -21,9 +21,10 @@ extension Session.Window {
     public func wait(
         until condition: ElementWaitCondition,
         timeout: Duration,
-        where predicate: @Sendable (Element.LocatorProxy) -> any LocatorQuery
+        where predicate: @Sendable (Element.LocatorProxy) -> any LocatorQuery,
+        fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function
     ) async throws -> Element {
-        try await self.wait(until: condition, timeout: timeout, where: { predicate($0).makeQuery() })
+        try await self.wait(until: condition, timeout: timeout, where: { predicate($0).makeQuery() }, fileID: fileID, line: line, function: function)
     }
     
     
@@ -31,7 +32,8 @@ extension Session.Window {
     public func wait(
         until condition: ElementWaitCondition,
         timeout: Duration,
-        where predicate: @Sendable (Element.LocatorProxy) -> Element.Query
+        where predicate: @Sendable (Element.LocatorProxy) -> Element.Query,
+        fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function
     ) async throws -> Element {
         let startDate = Date()
         let waitPeriod: Duration = .seconds(0.2)
@@ -41,7 +43,7 @@ extension Session.Window {
         
         while Date() < startDate.addingTimeInterval(timeout.seconds) {
             do {
-                let element = try await self.findElement(where: predicate)
+                let element = try await self.findElement(where: predicate, fileID: fileID, line: line, function: function)
                 switch condition {
                 case .elementPresence:
                     return element
@@ -52,7 +54,7 @@ extension Session.Window {
                     }
                     return element
                 }
-            } catch let error as ServerError where error.code == .no_such_element {
+            } catch let error as WebDriverError where error.code == .no_such_element {
                 try await Task.sleep(for: waitPeriod)
                 continue
             } catch {

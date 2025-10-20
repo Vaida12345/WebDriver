@@ -37,9 +37,10 @@ extension Session.Window {
         width: Double = 21.59,
         height: Double = 27.94,
         scaleToFit: Bool = true,
-        margin: Margin = Margin()
+        margin: Margin = Margin(),
+        fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function
     ) async throws -> sending PDFDocument {
-        try await self.becomeFirstResponder()
+        try await self.becomeFirstResponder(fileID: fileID, line: line, function: function)
         
         let (result, _) = try await self.session.data(
             .post,
@@ -57,7 +58,10 @@ extension Session.Window {
                     "leading": margin.leading,
                     "trailing": margin.trailing
                 ]
-            ]
+            ],
+            context: SwiftContext(fileID: fileID, line: line, function: function),
+            origin: .window(self),
+            invoker: #function
         )
         let base64 = try JSONParser(data: result)["value"]
         let data = Data(base64Encoded: base64)!

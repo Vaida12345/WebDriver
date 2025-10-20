@@ -60,11 +60,12 @@ extension Session.Window {
     ///
     /// > First Responder:
     /// > The first responder is switched to `self`.
-    public func execute(_ command: ScriptExecutionInterpolation, async: Bool = false) async throws -> sending JSONParser {
+    public func execute(_ command: ScriptExecutionInterpolation, async: Bool = false, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> sending JSONParser {
         try await self.execute(
             command.command,
             args: command.args,
-            async: async
+            async: async,
+            fileID: fileID, line: line, function: function
         )
     }
 }

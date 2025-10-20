@@ -22,13 +22,13 @@ extension Element {
     ///
     /// ## See Also
     /// - [W3C WebDriver Specification – Click](https://www.w3.org/TR/webdriver2/#element-click)
-    public func click() async throws {
-        try await self.parser(.post, "click")
+    public func click(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
+        try await self.parser(.post, "click", context: SwiftContext(fileID: fileID, line: line, function: function))
     }
     
     /// Sends a Javascript code execution that forces clicks.
-    public func forceClick() async throws {
-        let _ = try await self.window.execute("\(self).click();")
+    public func forceClick(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
+        let _ = try await self.window.execute("\(self).click();", fileID: fileID, line: line, function: function)
     }
     
     /// Clears the text content of an input or textarea element in the W3C WebDriver standard.
@@ -44,8 +44,8 @@ extension Element {
     ///
     /// ## See Also
     /// - [W3C WebDriver Specification – Clear](https://www.w3.org/TR/webdriver2/#element-clear)
-    public func clear() async throws {
-        try await self.parser(.post, "clear")
+    public func clear(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
+        try await self.parser(.post, "clear", context: SwiftContext(fileID: fileID, line: line, function: function))
     }
     
     /// Writes the given `text` to the field.
@@ -55,14 +55,14 @@ extension Element {
     /// - Parameters:
     ///   - text: The text to input
     ///   - terminator: The default value is `\u{E007}`, which represents *enter*.
-    public func write(_ text: String, terminator: String = "\u{E007}") async throws {
+    public func write(_ text: String, terminator: String = "\u{E007}", fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
         let text = text + terminator
-        try await self.parser(.post, "value", json: ["text" : text, "value" : Array(text).map({ String($0) })])
+        try await self.parser(.post, "value", json: ["text" : text, "value" : Array(text).map({ String($0) })], context: SwiftContext(fileID: fileID, line: line, function: function))
     }
     
     /// Scrolls the element into view.
-    public func scrollIntoView() async throws {
-        let _ = try await self.window.execute("\(self).scrollIntoView();")
+    public func scrollIntoView(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
+        let _ = try await self.window.execute("\(self).scrollIntoView();", fileID: fileID, line: line, function: function)
     }
     
 }
