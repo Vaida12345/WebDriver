@@ -62,7 +62,9 @@ extension Session.Window {
             }
         }
         
-        throw WaitingTimeout(duration: timeout, query: query)
+        let source = try? await self.pageSource
+        
+        throw WaitingTimeout(duration: timeout, query: query, details: source)
     }
     
     
@@ -71,6 +73,8 @@ extension Session.Window {
         let duration: Duration
         
         let query: Element.Query?
+        
+        public var details: String?
         
         public var message: String {
             if let query {
