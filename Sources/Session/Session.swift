@@ -71,8 +71,8 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
     }
     
     
-    init(launcher: any WebDriverLauncher, context: SwiftContext, invoker: StaticString) async throws {
-        self.session = URLSession(configuration: .ephemeral)
+    init(launcher: any WebDriverLauncher, context: SwiftContext, invoker: StaticString, urlSessionConfiguration: URLSessionConfiguration = .ephemeral) async throws {
+        self.session = URLSession(configuration: urlSessionConfiguration)
         self.identity = Identity(id: "", creation: context)
         self.launcher = launcher
         
