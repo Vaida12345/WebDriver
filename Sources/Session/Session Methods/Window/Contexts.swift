@@ -7,6 +7,7 @@
 
 import Foundation
 import Essentials
+import JSONParser
 
 
 extension Session {
@@ -17,7 +18,7 @@ extension Session {
             let (data, _) = try await self.data(.get, "session/\(id)/window", data: nil, context: .unavailable, origin: .session(self), invoker: #function)
             let parser = try JSONParser(data: data)
             
-            return try Window(session: self, id: parser["value"], context: SwiftContext(fileID: "<unavailable>", line: -1, function: "Session.window"))
+            return try Window(session: self, id: parser.decode(String.self, forKey: "value"), context: SwiftContext(fileID: "<unavailable>", line: -1, function: "Session.window"))
         }
     }
     
@@ -27,7 +28,7 @@ extension Session {
     public var windows: [Window] {
         get async throws {
             let (data, _) = try await self.data(.get, "session/\(id)/window/handles", data: nil, context: .unavailable, origin: .session(self), invoker: #function)
-            return try JSONParser(data: data).array("value", type: .string).map({ Window(session: self, id: $0, context: SwiftContext(fileID: "<unavailable>", line: -1, function: "Session.windows")) })
+            return try JSONParser(data: data).decode([String].self, forKey: "value").map({ Window(session: self, id: $0, context: SwiftContext(fileID: "<unavailable>", line: -1, function: "Session.windows")) })
         }
     }
     
@@ -38,9 +39,9 @@ extension Session {
                                             origin: .session(self),
                                             invoker: #function)
         let parser = try JSONParser(data: data)
-        let value = try parser.object("value")
-        let id = try value["handle"]
-        let type = try Window.WindowType(rawValue: value["type"])!
+        let value = try parser.decode(JSONParser.self, forKey: "value")
+        let id = try value.decode(String.self, forKey: "handle")
+        let type = try Window.WindowType(rawValue: value.decode(String.self, forKey: "type"))!
         
         return Window(session: self, id: id, type: type, context: SwiftContext(fileID: fileID, line: line, function: function))
     }

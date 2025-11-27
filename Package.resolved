@@ -1,5 +1,5 @@
 {
-  "originHash" : "33513be6ea075a45f31d498343eaf0e41d1b7243420da61ed5b1aefb961b7be8",
+  "originHash" : "80d40aba10473bad79cd86904823d8e20689d387b08496347ebcc02a44f47ab4",
   "pins" : [
     {
       "identity" : "detaileddescription",
@@ -13,10 +13,10 @@
     {
       "identity" : "essentials",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Vaida12345/Essentials",
+      "location" : "https://github.com/Vaida12345/Essentials.git",
       "state" : {
-        "revision" : "214c8d8dd021fb34fa6c12126e240fdc1557ff93",
-        "version" : "1.1.8"
+        "revision" : "3af3ea5b2ef7f92edd58a209a2e70a8c1a090c10",
+        "version" : "1.1.9"
       }
     },
     {
@@ -29,12 +29,21 @@
       }
     },
     {
+      "identity" : "jsonparser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Vaida12345/JSONParser.git",
+      "state" : {
+        "revision" : "d42634c57a9d0fa93965aa97d38196a74957d85f",
+        "version" : "1.2.0"
+      }
+    },
+    {
       "identity" : "nativeimage",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Vaida12345/NativeImage",
+      "location" : "https://github.com/Vaida12345/NativeImage.git",
       "state" : {
-        "revision" : "85534ff1cf306ed9e674c5dc782dd0ca8bda423d",
-        "version" : "1.0.3"
+        "revision" : "3b76db00f7ca0198829e1fc0d7d3bf1000b2c502",
+        "version" : "1.0.5"
       }
     },
     {

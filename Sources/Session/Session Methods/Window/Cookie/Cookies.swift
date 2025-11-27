@@ -6,6 +6,7 @@
 //
 
 import Essentials
+import JSONParser
 
 
 extension Session.Window {
@@ -39,7 +40,7 @@ extension Session.Window {
                 let (data, _) = try await self.window.session.data(.get, "/session/\(self.window.session.id)/cookie", data: nil, context: .unavailable, origin: .window(self.window), invoker: "Cookies.values")
                 let parser = try JSONParser(data: data)
                 
-                return try parser.array("value").map(Cookie.init)
+                return try parser.decode([JSONParser].self, forKey: "value").map(Cookie.init)
             }
         }
         
@@ -80,7 +81,7 @@ extension Session.Window {
                                                                    invoker: #function)
                 let parser = try JSONParser(data: data)
                 
-                return try Cookie(parser: parser.object("value"))
+                return try Cookie(parser: parser.decode(JSONParser.self, forKey: "value"))
             }
         }
     }

@@ -6,6 +6,7 @@
 //
 
 import Essentials
+import JSONParser
 
 
 extension Element {
@@ -17,21 +18,21 @@ extension Element {
     /// - term Otherwise: `false`.
     public var isSelected: Bool {
         get async throws {
-            return try await self.parser(.get, "selected", context: .unavailable)!["value", .bool]
+            return try await self.parser(.get, "selected", context: .unavailable)!.decode(Bool.self, forKey: "value")
         }
     }
     
     /// Returns whether the element is enabled.
     public var isEnabled: Bool {
         get async throws {
-            try await self.parser(.get, "enabled", context: .unavailable)!["value", .bool]
+            try await self.parser(.get, "enabled", context: .unavailable)!.decode(Bool.self, forKey: "value")
         }
     }
     
     /// Returns whether the element is displayed.
     public var isVisible: Bool {
         get async throws {
-            try await self.parser(.get, "displayed", context: .unavailable)!["value", .bool]
+            try await self.parser(.get, "displayed", context: .unavailable)!.decode(Bool.self, forKey: "value")
         }
     }
     
@@ -51,7 +52,7 @@ extension Element {
         && (e===topEl || e.contains(topEl));
       """
             
-            return try await self.window.execute(script, args: [["element-6066-11e4-a52e-4f735466cecf" : self.id]])["value", .bool]
+            return try await self.window.execute(script, args: [["element-6066-11e4-a52e-4f735466cecf" : self.id]]).decode(Bool.self, forKey: "value")
         }
     }
     

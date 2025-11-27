@@ -13,14 +13,14 @@ extension Element {
     /// Returns the text as rendered.
     public var text: String {
         get async throws {
-            try await self.parser(.get, "text", context: .unavailable)!["value"]
+            try await self.parser(.get, "text", context: .unavailable)!.decode(String.self, forKey: "value")
         }
     }
     
     /// Returns the tag name.
     public var tag: String {
         get async throws {
-            try await self.parser(.get, "name", context: .unavailable)!["value"]
+            try await self.parser(.get, "name", context: .unavailable)!.decode(String.self, forKey: "value")
         }
     }
     
@@ -45,10 +45,10 @@ extension Element {
         get async throws {
             let parser = try await self.parser(.get, "rect", context: .unavailable)!
             
-            return try CGRect(x: parser["x", .numeric],
-                              y: parser["y", .numeric],
-                              width: parser["width", .numeric],
-                              height: parser["height", .numeric])
+            return try CGRect(x: parser.decode(Double.self, forKey: "x"),
+                              y: parser.decode(Double.self, forKey: "y"),
+                              width: parser.decode(Double.self, forKey: "width"),
+                              height: parser.decode(Double.self, forKey: "height"))
         }
     }
     
@@ -91,7 +91,7 @@ extension Element {
     /// - [Accessible Name and Description Computation](https://www.w3.org/TR/accname/)
     public var label: String {
         get async throws {
-            try await self.parser(.get, "computedlabel", context: .unavailable)!["value"]
+            try await self.parser(.get, "computedlabel", context: .unavailable)!.decode(String.self, forKey: "value")
         }
     }
     
@@ -100,11 +100,11 @@ extension Element {
     public func load(_ attribute: LoadableAttribute, at source: LoadSource = .original, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> String {
         switch source {
         case .original:
-            try await self.parser(.get, "attribute/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function))!["value"]
+            try await self.parser(.get, "attribute/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function))!.decode(String.self, forKey: "value")
         case .script:
-            try await self.parser(.get, "property/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function))!["value"]
+            try await self.parser(.get, "property/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function))!.decode(String.self, forKey: "value")
         case .latest:
-            try await self.parser(.get, "css/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function))!["value"]
+            try await self.parser(.get, "css/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function))!.decode(String.self, forKey: "value")
         }
     }
     
@@ -112,11 +112,11 @@ extension Element {
     public func load(_ attribute: String, at source: LoadSource = .original, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> String {
         switch source {
         case .original:
-            try await self.parser(.get, "attribute/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function))!["value"]
+            try await self.parser(.get, "attribute/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function))!.decode(String.self, forKey: "value")
         case .script:
-            try await self.parser(.get, "property/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function))!["value"]
+            try await self.parser(.get, "property/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function))!.decode(String.self, forKey: "value")
         case .latest:
-            try await self.parser(.get, "css/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function))!["value"]
+            try await self.parser(.get, "css/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function))!.decode(String.self, forKey: "value")
         }
     }
     

@@ -7,6 +7,7 @@
 
 import Foundation
 import Essentials
+import JSONParser
 
 
 extension Session {
@@ -19,8 +20,9 @@ extension Session {
         
         
         init(parser: JSONParser) throws {
-            self.isReady = try parser.object("value")["ready", .bool]
-            self.message = try parser.object("value")["message"]
+            let parser = try parser.decode(JSONParser.self, forKey: "value")
+            self.isReady = try parser.decode(Bool.self, forKey: "ready")
+            self.message = try parser.decode(String.self, forKey: "message")
         }
         
     }

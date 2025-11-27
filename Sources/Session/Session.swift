@@ -8,6 +8,7 @@
 import Foundation
 import Essentials
 import OSLog
+import JSONParser
 
 
 /// A connection session.
@@ -81,7 +82,7 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
         let results = try await self.data(.post, "session", json: ["capabilities": ["alwaysMatch" : driver.capabilities]],
                                           context: context, origin: .session(self), invoker: invoker)
         let parser = try JSONParser(data: results.0)
-        self.identity.id = try parser.object("value")["sessionId"]
+        self.identity.id = try parser.decode(JSONParser.self, forKey: "value").decode(String.self, forKey: "sessionId")
     }
     
     
@@ -125,7 +126,7 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
             
         case 400, 404, 405, 500:
             do {
-                let parser = try JSONParser(data: data).object("value")
+                let parser = try JSONParser(data: data).decode(JSONParser.self, forKey: "value")
                 throw try WebDriverError(parser: parser, response: response, context: context, origin: origin, invoker: invoker)
             } catch let error as WebDriverError {
                 throw error

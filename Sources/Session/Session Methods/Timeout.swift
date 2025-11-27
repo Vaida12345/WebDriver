@@ -7,6 +7,7 @@
 
 import Foundation
 import Essentials
+import JSONParser
 
 
 extension Session {
@@ -70,15 +71,15 @@ extension Session {
         
         
         init(parser: JSONParser) throws {
-            let value = try parser.object("value")
+            let value = try parser.decode(JSONParser.self, forKey: "value")
             
-            let script = try value["script", .numeric]
+            let script = try value.decode(Double.self, forKey: "script")
             self.script = script == 0 ? nil : .milliseconds(script)
             
-            let pageLoad = try value["pageLoad", .numeric]
+            let pageLoad = try value.decode(Double.self, forKey: "pageLoad")
             self.pageLoad = pageLoad == 0 ? nil : .milliseconds(pageLoad)
             
-            let implicit = try value["implicit", .numeric]
+            let implicit = try value.decode(Double.self, forKey: "implicit")
             self.implicit = implicit == 0 ? nil : .milliseconds(implicit)
         }
         

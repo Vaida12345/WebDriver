@@ -9,6 +9,7 @@ import Essentials
 import Foundation
 import CoreGraphics
 import NativeImage
+import JSONParser
 
 
 extension Session.Window {

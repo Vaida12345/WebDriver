@@ -8,6 +8,7 @@
 import Foundation
 import Essentials
 import DetailedDescription
+import JSONParser
 
 
 extension Session.Window {
@@ -70,7 +71,7 @@ extension Session.Window {
         
         
         init(parser: JSONParser, window: Session.Window, context: SwiftContext) throws {
-            self.identity = Identity(id: try parser["element-6066-11e4-a52e-4f735466cecf"], creation: context)
+            self.identity = Identity(id: try parser.decode(String.self, forKey: "element-6066-11e4-a52e-4f735466cecf"), creation: context)
             self.window = window
         }
     }

@@ -7,6 +7,7 @@
 
 import Foundation
 import Essentials
+import JSONParser
 
 
 extension Session {
@@ -20,7 +21,7 @@ extension Session {
     public var title: String {
         get async throws {
             let (data, _) = try await self.data(.get, "session/\(id)/title", data: nil, context: .unavailable, origin: .session(self), invoker: #function)
-            return try JSONParser(data: data)["value"]
+            return try JSONParser(data: data).decode(String.self, forKey: "value")
         }
     }
     
@@ -41,7 +42,7 @@ extension Session {
                                             context: SwiftContext(fileID: fileID, line: line, function: function),
                                             origin: .session(self),
                                             invoker: #function)
-        let string = try JSONParser(data: data)["value"]
+        let string = try JSONParser(data: data).decode(String.self, forKey: "value")
         return URL(string: string)!
     }
     

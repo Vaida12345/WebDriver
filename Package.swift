@@ -13,15 +13,16 @@ let package = Package(
         .library(name: "WebDriver", targets: ["WebDriver"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/Vaida12345/FinderItem.git", from: "1.0.11"),
-        .package(url: "https://github.com/Vaida12345/Essentials.git", from: "1.0.18"),
+        .package(url: "https://github.com/Vaida12345/FinderItem.git", from: "1.2.5"),
+        .package(url: "https://github.com/Vaida12345/Essentials.git", from: "1.1.9"),
         .package(url: "https://github.com/Vaida12345/NativeImage.git", from: "1.0.0"),
-        .package(url: "https://github.com/weichsel/ZIPFoundation.git", from: "0.9.11")
+        .package(url: "https://github.com/Vaida12345/JSONParser.git", from: "1.2.0"),
+        .package(url: "https://github.com/weichsel/ZIPFoundation.git", from: "0.9.11"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
-        .target(name: "WebDriver", dependencies: ["FinderItem", "Essentials", "NativeImage", "ZIPFoundation"], path: "Sources"),
+        .target(name: "WebDriver", dependencies: ["FinderItem", "Essentials", "NativeImage", "ZIPFoundation", "JSONParser"], path: "Sources"),
         .executableTarget(name: "Client", dependencies: ["WebDriver", "FinderItem"], path: "Client"),
         .testTarget(name: "WebDriverTests", dependencies: ["WebDriver"], path: "Tests"),
     ]

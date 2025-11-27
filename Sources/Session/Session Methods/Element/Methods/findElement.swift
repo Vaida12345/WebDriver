@@ -6,6 +6,7 @@
 //
 
 import Essentials
+import JSONParser
 
 
 extension Element {
@@ -31,7 +32,7 @@ extension Element {
             invoker: #function
         )
         
-        return try Element(parser: JSONParser(data: data).object("value"), window: self.window, context: SwiftContext(fileID: fileID, line: line, function: function))
+        return try Element(parser: JSONParser(data: data).decode(JSONParser.self, forKey: "value"), window: self.window, context: SwiftContext(fileID: fileID, line: line, function: function))
     }
     
     /// The direct children.
@@ -46,7 +47,7 @@ extension Element {
                 invoker: #function
             )
             
-            return try JSONParser(data: data).array("value").map({ try Element(parser: $0, window: self.window, context: SwiftContext(fileID: "<unavaiable>", line: -1, function: #function)) })
+            return try JSONParser(data: data).decode([JSONParser].self, forKey: "value").map({ try Element(parser: $0, window: self.window, context: SwiftContext(fileID: "<unavaiable>", line: -1, function: #function)) })
         }
     }
     
@@ -71,7 +72,7 @@ extension Element {
             invoker: #function
         )
         
-        return try JSONParser(data: data).array("value").map({ try Element(parser: $0, window: self.window, context: SwiftContext(fileID: fileID, line: line, function: function)) })
+        return try JSONParser(data: data).decode([JSONParser].self, forKey: "value").map({ try Element(parser: $0, window: self.window, context: SwiftContext(fileID: fileID, line: line, function: function)) })
     }
     
 }

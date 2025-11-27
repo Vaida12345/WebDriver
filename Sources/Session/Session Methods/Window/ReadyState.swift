@@ -11,7 +11,7 @@ extension Session.Window {
     /// Reads and returns the current loading state of the page’s Document.
     public var readyState: ReadyState {
         get async throws {
-            try await ReadyState(rawValue: self.execute("return document.readyState;")["value"])!
+            try await ReadyState(rawValue: self.execute("return document.readyState;").decode(String.self, forKey: "value"))!
         }
     }
     

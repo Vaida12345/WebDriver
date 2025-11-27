@@ -7,6 +7,7 @@
 
 import Foundation
 import Essentials
+import JSONParser
 
 
 extension Session.Window {
@@ -34,7 +35,7 @@ extension Session.Window {
                                                     origin: .window(self),
                                                     invoker: #function)
         
-        return try Element(parser: JSONParser(data: data).object("value"), window: self, context: SwiftContext(fileID: fileID, line: line, function: function))
+        return try Element(parser: JSONParser(data: data).decode(JSONParser.self, forKey: "value"), window: self, context: SwiftContext(fileID: fileID, line: line, function: function))
     }
     
     /// Find the elements in the document element of the window.
@@ -60,7 +61,7 @@ extension Session.Window {
                                                     origin: .window(self),
                                                     invoker: #function)
         
-        return try JSONParser(data: data).array("value").map({ try Element(parser: $0, window: self, context: SwiftContext(fileID: fileID, line: line, function: function)) })
+        return try JSONParser(data: data).decode([JSONParser].self, forKey: "value").map({ try Element(parser: $0, window: self, context: SwiftContext(fileID: fileID, line: line, function: function)) })
     }
     
     
@@ -79,7 +80,7 @@ extension Session.Window {
             
             let (data, _) = try await self.session.data(.get, "/session/\(self.session.id)/element/active", data: nil, context: .unavailable, origin: .window(self), invoker: "Session.Window.activeElement")
             
-            return try Element(parser: JSONParser(data: data).object("value"), window: self, context: SwiftContext(fileID: "<unavailable>", line: -1, function: #function))
+            return try Element(parser: JSONParser(data: data).decode(JSONParser.self, forKey: "value"), window: self, context: SwiftContext(fileID: "<unavailable>", line: -1, function: #function))
         }
     }
     

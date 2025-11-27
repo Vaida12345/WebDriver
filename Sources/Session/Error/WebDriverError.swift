@@ -8,6 +8,7 @@
 import Foundation
 import Essentials
 import DetailedDescription
+import JSONParser
 
 
 /// Indicates web driver error.
@@ -50,10 +51,10 @@ public struct WebDriverError: GenericError, @unchecked Sendable {
     
     init(parser: JSONParser, response: HTTPURLResponse, context: SwiftContext, origin: Origin, invoker: StaticString) throws {
         self.statusCode = response.statusCode
-        self.code = try ErrorCode(rawValue: parser["error"])
-        self.message = try parser["message"]
-        self.stackTrace = try parser["stacktrace"]
-        self.data = try? parser.object("data")
+        self.code = ErrorCode(rawValue: parser["error"]!)
+        self.message = try parser.decode(String.self, forKey: "message")
+        self.stackTrace = try parser.decode(String.self, forKey: "stacktrace")
+        self.data = try? parser.decode(JSONParser.self, forKey: "data")
         
         self.context = context
         self.origin = origin

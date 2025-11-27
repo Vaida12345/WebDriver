@@ -8,6 +8,7 @@
 import PDFKit
 import Essentials
 import Foundation
+import JSONParser
 
 
 extension Session.Window {
@@ -63,7 +64,7 @@ extension Session.Window {
             origin: .window(self),
             invoker: #function
         )
-        let base64 = try JSONParser(data: result)["value"]
+        let base64 = try JSONParser(data: result).decode(String.self, forKey: "value")
         let data = Data(base64Encoded: base64)!
         return PDFDocument(data: data)!
     }

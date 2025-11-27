@@ -16,6 +16,7 @@ func main() async throws {
         .profile(location: "/Users/vaida/Library/Application Support/Firefox/Profiles/2hzm7hvo.Default User")
     
     let session = try await driver.startSession()
+    print(session)
     
     do {
         try await session.open(url: URL(string: "https://www.google.com")!)

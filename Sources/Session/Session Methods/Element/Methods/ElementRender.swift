@@ -20,7 +20,7 @@ extension Element {
     /// - Note: The screenshot will be cropped to the element's bounding box.
     public func screenshot(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> sending NativeImage {
         let parser = try await self.parser(.get, "screenshot", context: SwiftContext(fileID: fileID, line: line, function: function))!
-        let base64 = try parser["value"]
+        let base64 = try parser.decode(String.self, forKey: "value")
         let data = Data(base64Encoded: base64)!
         return NativeImage(data: data)!
     }

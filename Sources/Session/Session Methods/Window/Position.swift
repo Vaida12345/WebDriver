@@ -7,6 +7,7 @@
 
 import Essentials
 import CoreGraphics
+import JSONParser
 
 
 extension Session.Window {
@@ -36,12 +37,12 @@ extension Session.Window {
             try await self.becomeFirstResponder()
             
             let (data, _) = try await self.session.data(.get, "session/\(self.session.id)/window/rect", data: nil, context: .unavailable, origin: .window(self), invoker: #function)
-            let parser = try JSONParser(data: data).object("value")
+            let parser = try JSONParser(data: data).decode(JSONParser.self, forKey: "value")
             
-            return try CGRect(x: parser["x", .numeric],
-                              y: parser["y", .numeric],
-                              width: parser["width", .numeric],
-                              height: parser["height", .numeric])
+            return try CGRect(x: parser.decode(Double.self, forKey: "x"),
+                              y: parser.decode(Double.self, forKey: "y"),
+                              width: parser.decode(Double.self, forKey: "width"),
+                              height: parser.decode(Double.self, forKey: "height"))
         }
     }
     
@@ -81,12 +82,12 @@ extension Session.Window {
                                                     context: SwiftContext(fileID: fileID, line: line, function: function),
                                                     origin: .window(self),
                                                     invoker: #function)
-        let parser = try JSONParser(data: data).object("value")
+        let parser = try JSONParser(data: data).decode(JSONParser.self, forKey: "value")
         
-        return try CGRect(x: parser["x", .numeric],
-                          y: parser["y", .numeric],
-                          width: parser["width", .numeric],
-                          height: parser["height", .numeric])
+        return try CGRect(x: parser.decode(Double.self, forKey: "x"),
+                          y: parser.decode(Double.self, forKey: "y"),
+                          width: parser.decode(Double.self, forKey: "width"),
+                          height: parser.decode(Double.self, forKey: "height"))
     }
     
     
@@ -106,12 +107,12 @@ extension Session.Window {
                                                     context: SwiftContext(fileID: fileID, line: line, function: function),
                                                     origin: .window(self),
                                                     invoker: #function)
-        let parser = try JSONParser(data: data).object("value")
+        let parser = try JSONParser(data: data).decode(JSONParser.self, forKey: "value")
         
-        return try CGRect(x: parser["x", .numeric],
-                          y: parser["y", .numeric],
-                          width: parser["width", .numeric],
-                          height: parser["height", .numeric])
+        return try CGRect(x: parser.decode(Double.self, forKey: "x"),
+                          y: parser.decode(Double.self, forKey: "y"),
+                          width: parser.decode(Double.self, forKey: "width"),
+                          height: parser.decode(Double.self, forKey: "height"))
     }
     
     /// Hides the window in the system tray.
@@ -130,12 +131,12 @@ extension Session.Window {
                                                     context: SwiftContext(fileID: fileID, line: line, function: function),
                                                     origin: .window(self),
                                                     invoker: #function)
-        let parser = try JSONParser(data: data).object("value")
+        let parser = try JSONParser(data: data).decode(JSONParser.self, forKey: "value")
         
-        return try CGRect(x: parser["x", .numeric],
-                          y: parser["y", .numeric],
-                          width: parser["width", .numeric],
-                          height: parser["height", .numeric])
+        return try CGRect(x: parser.decode(Double.self, forKey: "x"),
+                          y: parser.decode(Double.self, forKey: "y"),
+                          width: parser.decode(Double.self, forKey: "width"),
+                          height: parser.decode(Double.self, forKey: "height"))
     }
     
     /// Enters full screen.
@@ -154,12 +155,12 @@ extension Session.Window {
                                                     context: SwiftContext(fileID: fileID, line: line, function: function),
                                                     origin: .window(self),
                                                     invoker: #function)
-        let parser = try JSONParser(data: data).object("value")
+        let parser = try JSONParser(data: data).decode(JSONParser.self, forKey: "value")
         
-        return try CGRect(x: parser["x", .numeric],
-                          y: parser["y", .numeric],
-                          width: parser["width", .numeric],
-                          height: parser["height", .numeric])
+        return try CGRect(x: parser.decode(Double.self, forKey: "x"),
+                          y: parser.decode(Double.self, forKey: "y"),
+                          width: parser.decode(Double.self, forKey: "width"),
+                          height: parser.decode(Double.self, forKey: "height"))
     }
         
     

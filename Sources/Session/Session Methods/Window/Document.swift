@@ -9,6 +9,7 @@ import Essentials
 import Foundation
 import CoreGraphics
 import NativeImage
+import JSONParser
 
 
 extension Session.Window {
@@ -22,7 +23,7 @@ extension Session.Window {
             try await self.becomeFirstResponder()
             
             let (data, _) = try await self.session.data(.get, "session/\(self.session.id)/source", data: nil, context: .unavailable, origin: .window(self), invoker: #function)
-            return try JSONParser(data: data)["value"]
+            return try JSONParser(data: data).decode(String.self, forKey: "value")
         }
     }
     
@@ -59,7 +60,7 @@ extension Session.Window {
                                                       context: SwiftContext(fileID: fileID, line: line, function: function),
                                                       origin: .window(self),
                                                       invoker: #function)
-        let base64 = try JSONParser(data: result)["value"]
+        let base64 = try JSONParser(data: result).decode(String.self, forKey: "value")
         let data = Data(base64Encoded: base64)!
         return NativeImage(data: data)!
     }

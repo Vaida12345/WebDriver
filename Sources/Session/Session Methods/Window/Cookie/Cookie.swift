@@ -7,6 +7,7 @@
 
 import Foundation
 import Essentials
+import JSONParser
 
 
 extension Session.Window {
@@ -69,14 +70,14 @@ extension Session.Window {
         
         
         init(parser: JSONParser) throws {
-            self.domain = try parser["domain"]
-            self.secure = try parser["secure", .bool]
-            self.expiry = try Date(timeIntervalSince1970: parser["expiry", .numeric])
-            self.httpOnly = try parser["httpOnly", .bool]
-            self.value = try parser["value"]
-            self.path = try parser["path"]
-            self.sameSite = try CrossSiteRequestBehavior(rawValue: parser["sameSite"])!
-            self.name = try parser["name"]
+            self.domain = try parser.decode(String.self, forKey: "domain")
+            self.secure = try parser.decode(Bool.self, forKey: "secure")
+            self.expiry = try Date(timeIntervalSince1970: parser.decode(Double.self, forKey: "expiry"))
+            self.httpOnly = try parser.decode(Bool.self, forKey: "httpOnly")
+            self.value = try parser.decode(String.self, forKey: "value")
+            self.path = try parser.decode(String.self, forKey: "path")
+            self.sameSite = try CrossSiteRequestBehavior(rawValue: parser.decode(String.self, forKey: "sameSite"))!
+            self.name = try parser.decode(String.self, forKey: "name")
         }
         
         
