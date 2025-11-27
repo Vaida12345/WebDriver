@@ -27,7 +27,7 @@ public protocol WebDriverProtocol {
     var capabilities: [String : Any] { get set }
     
     /// Creates a new session.
-    func startSession(fileID: StaticString, line: Int, function: StaticString) async throws -> Session
+    func startSession(urlSessionConfiguration: URLSessionConfiguration, fileID: StaticString, line: Int, function: StaticString) async throws -> Session
     
     /// Links an existing session.
     func linkSession(url: URL, port: UInt16, fileID: StaticString, line: Int, function: StaticString) async throws -> Session

@@ -24,9 +24,9 @@ extension WebDriver {
         public var capabilities: [String : Any]
         
         
-        public func startSession(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> Session {
+        public func startSession(urlSessionConfiguration: URLSessionConfiguration = .ephemeral, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> Session {
             let launcher = try await GeckoLauncher(driver: self)
-            return try await Session(launcher: launcher, context: SwiftContext(fileID: fileID, line: line, function: function), invoker: #function)
+            return try await Session(launcher: launcher, context: SwiftContext(fileID: fileID, line: line, function: function), invoker: #function, urlSessionConfiguration: urlSessionConfiguration)
         }
         
         
