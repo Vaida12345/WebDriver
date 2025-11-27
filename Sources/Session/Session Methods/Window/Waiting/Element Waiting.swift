@@ -35,13 +35,22 @@ extension Session.Window {
         where predicate: @Sendable (Element.LocatorProxy) -> Element.Query,
         fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function
     ) async throws -> Element {
-        let startDate = Date()
         let waitPeriod: Duration = .seconds(0.2)
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: timeout)
+        
+        @inline(__always)
+        func sleepBeforeRetry() async throws {
+            let remaining = clock.now.duration(to: deadline)
+            guard remaining > .zero else { return }
+            let sleepDuration = remaining < waitPeriod ? remaining : waitPeriod
+            try await clock.sleep(for: sleepDuration)
+        }
         
         let proxy = Element.LocatorProxy()
         let query = predicate(proxy)
         
-        while Date() < startDate.addingTimeInterval(timeout.seconds) {
+        while clock.now < deadline {
             do {
                 let element = try await self.findElement(where: predicate, fileID: fileID, line: line, function: function)
                 switch condition {
@@ -49,13 +58,13 @@ extension Session.Window {
                     return element
                 case .elementEnabled:
                     guard try await element.isEnabled else {
-                        try await Task.sleep(for: waitPeriod)
+                        try await sleepBeforeRetry()
                         continue
                     }
                     return element
                 }
             } catch let error as WebDriverError where error.code == .no_such_element {
-                try await Task.sleep(for: waitPeriod)
+                try await sleepBeforeRetry()
                 continue
             } catch {
                 throw error

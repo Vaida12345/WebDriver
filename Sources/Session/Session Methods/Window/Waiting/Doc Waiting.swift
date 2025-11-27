@@ -21,14 +21,23 @@ extension Session.Window {
         until condition: DocWaitCondition,
         timeout: Duration
     ) async throws {
-        let startDate = Date()
         let waitPeriod: Duration = .seconds(0.2)
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: timeout)
         
-        while Date() < startDate.addingTimeInterval(timeout.seconds) {
+        @inline(__always)
+        func sleepBeforeRetry() async throws {
+            let remaining = clock.now.duration(to: deadline)
+            guard remaining > .zero else { return }
+            let sleepDuration = remaining < waitPeriod ? remaining : waitPeriod
+            try await clock.sleep(for: sleepDuration)
+        }
+        
+        while clock.now < deadline {
             switch condition {
             case .documentReady:
                 guard try await self.readyState == .complete else {
-                    try await Task.sleep(for: waitPeriod)
+                    try await sleepBeforeRetry()
                     continue
                 }
                 return
