@@ -228,6 +228,10 @@ extension WebDriverError {
             }
         }
         
+        public static func == (_ lhs: ErrorCode, _ rhs: ErrorCode) -> Bool {
+            lhs.description == rhs.description
+        }
+        
     }
     
 }

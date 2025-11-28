@@ -51,7 +51,7 @@ public struct WebDriverError: GenericError, @unchecked Sendable {
     
     init(parser: JSONParser, response: HTTPURLResponse, context: SwiftContext, origin: Origin, invoker: StaticString) throws {
         self.statusCode = response.statusCode
-        self.code = ErrorCode(rawValue: parser["error"]!)
+        self.code = try ErrorCode(rawValue: parser.decode(String.self, forKey: "error"))
         self.message = try parser.decode(String.self, forKey: "message")
         self.stackTrace = try parser.decode(String.self, forKey: "stacktrace")
         self.data = try? parser.decode(JSONParser.self, forKey: "data")
