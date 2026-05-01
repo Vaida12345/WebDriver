@@ -11,7 +11,7 @@ import OSLog
 
 final class GeckoLauncher: WebDriverLauncher {
     
-    internal let manager: ShellManager
+    private let manager: ShellManager
     
     public let driver: WebDriver.Firefox
     

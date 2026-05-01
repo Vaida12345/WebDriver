@@ -39,6 +39,17 @@ extension WebDriver {
             self.init(capabilities: [:])
         }
         
+        /// Whether `geckodriver` is installed on local device.
+        ///
+        /// > Note:
+        /// > To use FireFox WebDriver, please ensure you have `geckodriver` installed, you can install it via
+        /// > ```sh
+        /// >  $ brew install geckodriver
+        /// > ```
+        public var isAvailable: Bool {
+            FinderItem(at: "/opt/homebrew/bin/geckodriver").exists
+        }
+        
     }
     
 }

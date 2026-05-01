@@ -34,6 +34,9 @@ public protocol WebDriverProtocol {
     
     init(capabilities: [String : Any])
     
+    /// Whether the necessary driver is installed on local device.
+    var isAvailable: Bool { get }
+    
 }
 
 
