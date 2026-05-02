@@ -51,7 +51,8 @@ extension Session {
                                             origin: .session(self),
                                             invoker: #function)
         let string = try JSONParser(data: data).decode(String.self, forKey: "value")
-        return URL(string: string)!
+        guard let url = URL(string: string) else { throw SessionError.invalidURL(string) }
+        return url
     }
     
     

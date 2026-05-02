@@ -59,8 +59,7 @@ extension WebDriver {
         ///
         /// Resolution order:
         /// 1. `WEBDRIVER_GECKO_PATH` environment variable.
-        /// 2. First `geckodriver` available in `PATH`.
-        /// 3. Common macOS install paths.
+        /// 2. Common macOS install paths.
         static var geckoDriverPath: String? {
             get {
                 if let override = ProcessInfo.processInfo.environment["WEBDRIVER_GECKO_PATH"],
