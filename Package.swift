@@ -17,7 +17,6 @@ let package = Package(
         .package(url: "https://github.com/Vaida12345/Essentials.git", from: "1.1.9"),
         .package(url: "https://github.com/Vaida12345/NativeImage.git", from: "1.0.0"),
         .package(url: "https://github.com/Vaida12345/JSONParser.git", from: "1.2.0"),
-        .package(url: "https://github.com/weichsel/ZIPFoundation.git", from: "0.9.11"),
         .package(url: "https://github.com/swiftlang/swift-subprocess.git", .upToNextMinor(from: "0.4.0"))
     ],
     targets: [
@@ -26,7 +25,7 @@ let package = Package(
         .target(
             name: "WebDriver",
             dependencies: [
-                "FinderItem", "Essentials", "NativeImage", "ZIPFoundation", "JSONParser",
+                "FinderItem", "Essentials", "NativeImage", "JSONParser",
                 .product(name: "Subprocess", package: "swift-subprocess")
             ],
             path: "Sources"

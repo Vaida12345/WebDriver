@@ -16,6 +16,7 @@ protocol WebDriverLauncher<Driver> {
     
     var url: URL { get }
     
+    /// Cleanup the driver & session.
     func stop()
     
     associatedtype Driver: WebDriverProtocol

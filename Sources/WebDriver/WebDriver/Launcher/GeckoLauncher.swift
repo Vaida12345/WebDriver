@@ -7,6 +7,7 @@
 
 import Foundation
 import OSLog
+import FinderItem
 
 
 final class GeckoLauncher: WebDriverLauncher {
@@ -22,6 +23,20 @@ final class GeckoLauncher: WebDriverLauncher {
     
     public func stop() {
         self.manager.terminate()
+        
+        if driver.flags.contains(.deleteProfileAfterUse),
+           let options = driver.capabilities["moz:firefoxOptions"] as? [String : Any],
+           let args = options["args"] as? [String],
+           let firstIndex = args.firstIndex(of: "-profile"),
+           args.count >= firstIndex + 1 {
+            let profile = args[firstIndex + 1]
+            do {
+                try FinderItem(at: profile).removeIfExists()
+            } catch {
+                let logger = Logger(subsystem: "WebDriver", category: "GeckoLauncher")
+                logger.fault("Failed to delete profile: \(error)")
+            }
+        }
     }
     
     

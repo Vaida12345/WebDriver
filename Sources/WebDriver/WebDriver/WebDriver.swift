@@ -24,7 +24,9 @@ public enum WebDriver {
 public protocol WebDriverProtocol {
     
     /// The capabilities required.
-    var capabilities: [String : Any] { get set }
+    var capabilities: [String : Any] { get }
+    
+    var flags: WebDriverInitializationFlags { get }
     
     /// Creates a new session.
     func startSession(urlSessionConfiguration: URLSessionConfiguration, fileID: StaticString, line: Int, function: StaticString) async throws -> Session
@@ -32,7 +34,9 @@ public protocol WebDriverProtocol {
     /// Links an existing session.
     func linkSession(url: URL, port: UInt16, fileID: StaticString, line: Int, function: StaticString) async throws -> Session
     
-    init(capabilities: [String : Any])
+    init(capabilities: [String : Any], flags: WebDriverInitializationFlags)
+    
+    init()
     
     /// Whether the necessary driver is installed on local device.
     static var isAvailable: Bool { get }
@@ -40,10 +44,21 @@ public protocol WebDriverProtocol {
 }
 
 
+public struct WebDriverInitializationFlags: OptionSet, Sendable {
+    public var rawValue: UInt
+    
+    public init(rawValue: UInt) {
+        self.rawValue = rawValue
+    }
+    
+    static let deleteProfileAfterUse = WebDriverInitializationFlags(rawValue: 1 << 0)
+}
+
+
 public extension WebDriverProtocol {
     
     internal func appendingCapability(key: String, value: String) -> Self {
-        Self(capabilities: self.capabilities.merging([key : value], uniquingKeysWith: { $1 }))
+        Self(capabilities: self.capabilities.merging([key : value], uniquingKeysWith: { $1 }), flags: self.flags)
     }
     
     /// Identifies the user agent.

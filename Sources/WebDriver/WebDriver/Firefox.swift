@@ -7,7 +7,6 @@
 
 import Foundation
 import FinderItem
-import ZIPFoundation
 
 
 extension WebDriver {
@@ -21,7 +20,9 @@ extension WebDriver {
     /// > ```
     public struct Firefox: WebDriverProtocol, @unchecked Sendable {
         
-        public var capabilities: [String : Any]
+        public fileprivate(set) var capabilities: [String : Any]
+        
+        public fileprivate(set) var flags: WebDriverInitializationFlags
         
         
         public func startSession(urlSessionConfiguration: URLSessionConfiguration = .ephemeral, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> Session {
@@ -31,13 +32,14 @@ extension WebDriver {
         }
         
         
-        public init(capabilities: [String : Any]) {
+        public init(capabilities: [String : Any], flags: WebDriverInitializationFlags) {
             self.capabilities = capabilities
+            self.flags = flags
         }
         
         /// Initialize the WebDriver.
         public init() {
-            self.init(capabilities: [:])
+            self.init(capabilities: [:], flags: [])
         }
         
         /// Whether `geckodriver` is installed on local device.
@@ -65,7 +67,7 @@ public extension WebDriver.Firefox {
         
         capabilities["moz:firefoxOptions"] = firefoxCapabilities
         
-        return WebDriver.Firefox(capabilities: capabilities)
+        return WebDriver.Firefox(capabilities: capabilities, flags: flags)
     }
     
     internal func appendingFirefoxArg(arg: String) -> WebDriver.Firefox {
@@ -77,7 +79,7 @@ public extension WebDriver.Firefox {
         firefoxCapabilities["args"] = args
         capabilities["moz:firefoxOptions"] = firefoxCapabilities
         
-        return WebDriver.Firefox(capabilities: capabilities)
+        return WebDriver.Firefox(capabilities: capabilities, flags: flags)
     }
     
     
@@ -106,9 +108,11 @@ public extension WebDriver.Firefox {
     ///
     /// This implementation will create a temp copy of the profile to avoid conflicts.
     func profile(location: FinderItem) async throws -> WebDriver.Firefox {
-        let base64 = try await zipAndBase64Encode(directoryURL: location.url)
-        
-        return self.appendingFirefoxCapability(key: "profile", value: base64)
+        let temp = try FinderItem.temporaryDirectory(intent: .general)/"\(UUID()).tempprofile"
+        try location.copy(to: temp)
+        var new = self.appendingFirefoxArg(arg: "-profile").appendingFirefoxArg(arg: temp.path)
+        new.flags.insert(.deleteProfileAfterUse)
+        return new
     }
     
     /// Bypass profile manager and launch application with the profile named `name`.
@@ -151,27 +155,4 @@ public extension WebDriver.Firefox {
         self.appendingFirefoxArg(arg: "-private-window")
     }
     
-}
-
-
-fileprivate func zipAndBase64Encode(directoryURL: URL) async throws -> String {
-    let fileManager = FileManager.default
-    
-    // 1) Create a unique temp-file URL for the .zip
-    let tempZipURL = fileManager
-        .temporaryDirectory
-        .appendingPathComponent(UUID().uuidString)
-        .appendingPathExtension("zip")
-    
-    // 2) Zip the folder
-    try fileManager.zipItem(at: directoryURL, to: tempZipURL, shouldKeepParent: false)
-    
-    // 3) Load the zip into Data
-    let zipData = try Data(contentsOf: tempZipURL)
-    
-    // 4) Cleanup temp
-    try? fileManager.removeItem(at: tempZipURL)
-    
-    // 5) Base64-encode
-    return zipData.base64EncodedString()
 }

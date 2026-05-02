@@ -15,6 +15,8 @@ func main() async throws {
         .pageLoadStrategy(.eager)
         .profile(location: "/Users/vaida/Library/Application Support/Firefox/Profiles/2hzm7hvo.Default User")
     
+    print(driver.capabilities)
+    
     let session = try await driver.startSession()
     print(session)
     
@@ -27,7 +29,7 @@ func main() async throws {
         let window = try await session.window
         let element = try await window.findElement(where: { $0.tag == "textarea" && $0.title == "Search" })
         try await element.write("Swift")
-        let child = try await window.wait(until: .elementPresence, timeout: .seconds(60), where: { $0.tag == "213456" })
+        let child = try await window.wait(until: .elementPresence, timeout: .seconds(5), where: { $0.tag == "213456" })
         
         //    try await Task.sleep(for: .seconds(10))
     } catch {

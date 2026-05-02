@@ -95,4 +95,4 @@ This package uses [DocC](https://www.swift.org/documentation/docc/) for document
 
 ## Credits
 
-- [ZipFoundation](https://github.com/weichsel/ZIPFoundation)
+- [Subprocess](https://github.com/swiftlang/swift-subprocess)
