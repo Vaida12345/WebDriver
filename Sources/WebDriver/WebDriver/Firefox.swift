@@ -7,6 +7,7 @@
 
 import Foundation
 import FinderItem
+import Subprocess
 
 
 extension WebDriver {
@@ -26,14 +27,14 @@ extension WebDriver {
         
         
         public func startSession(urlSessionConfiguration: URLSessionConfiguration = .ephemeral, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> Session {
+            guard Firefox.isAvailable else { throw InitializationError.driverNotAvailable }
+            
             let launcher = try await GeckoLauncher(driver: self)
             return try await Session(launcher: launcher, context: SwiftContext(fileID: fileID, line: line, function: function), invoker: #function, urlSessionConfiguration: urlSessionConfiguration)
         }
         
         
         public init(capabilities: [String : Any], flags: WebDriverInitializationFlags) throws(InitializationError) {
-            guard Firefox.isAvailable else { throw InitializationError.driverNotAvailable }
-            
             self.capabilities = capabilities
             self.flags = flags
         }
@@ -51,7 +52,44 @@ extension WebDriver {
         /// >  $ brew install geckodriver
         /// > ```
         public static var isAvailable: Bool {
-            FinderItem(at: "/opt/homebrew/bin/geckodriver").exists
+            Self.geckoDriverPath != nil
+        }
+
+        /// Resolves the `geckodriver` executable path used to start Firefox sessions.
+        ///
+        /// Resolution order:
+        /// 1. `WEBDRIVER_GECKO_PATH` environment variable.
+        /// 2. First `geckodriver` available in `PATH`.
+        /// 3. Common macOS install paths.
+        static var geckoDriverPath: String? {
+            get {
+                if let override = ProcessInfo.processInfo.environment["WEBDRIVER_GECKO_PATH"],
+                   !override.isEmpty,
+                   FileManager.default.isExecutableFile(atPath: override) {
+                    return override
+                }
+                
+                let fallbackPaths = [
+                    "/opt/homebrew/bin/geckodriver",
+                    "/usr/local/bin/geckodriver"
+                ]
+                
+                return fallbackPaths.first(where: { FileManager.default.isExecutableFile(atPath: $0) })
+            }
+        }
+
+        /// Finds `geckodriver` from the current process `PATH`.
+        private static func geckoDriverPathFromPATH() async -> String? {
+            do {
+                let path = try await run(.name("which"), arguments: ["geckodriver"], output: .string(limit: 4096))
+                
+                guard let output = path.standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines),
+                      !output.isEmpty,
+                      FileManager.default.isExecutableFile(atPath: output) else { return nil }
+                return output
+            } catch {
+                return nil
+            }
         }
         
     }

@@ -41,6 +41,11 @@ final class GeckoLauncher: WebDriverLauncher {
     }
     
     
+    /// Creates and launches a `geckodriver` process for the provided Firefox driver.
+    ///
+    /// - Parameters:
+    ///   - driver: The configured Firefox driver.
+    ///   - maxRetryCount: Number of random-port retries before failing.
     init(driver: Driver, maxRetryCount: Int = 10) async throws {
         self.driver = driver
         
@@ -49,8 +54,12 @@ final class GeckoLauncher: WebDriverLauncher {
         
         var counter: Int = 0
         
+        guard let geckoDriverPath = WebDriver.Firefox.geckoDriverPath else {
+            throw WebDriver.InitializationError.driverNotAvailable
+        }
+
         while counter < maxRetryCount {
-            try manager.run(arguments: "/opt/homebrew/bin/geckodriver -p \(port)")
+            try manager.run(arguments: "\(geckoDriverPath) -p \(port)")
             var stdout = manager.lines().makeAsyncIterator()
             
             let line = try await stdout.next()
