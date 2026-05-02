@@ -25,6 +25,14 @@ extension Session {
         }
     }
     
+    /// Navigation to the given url.
+    @available(macOS 14.0, *)
+    public func open(_ url: String, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
+        guard let url = URL(string: url, encodingInvalidCharacters: true) else {
+            throw SessionError.invalidURL(url)
+        }
+        try await self.open(url: url, fileID: fileID, line: line, function: function)
+    }
     
     /// Navigation to the given url.
     public func open(url: URL, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {

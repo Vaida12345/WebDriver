@@ -25,6 +25,7 @@ extension WebDriver {
         
         
         public func startSession(urlSessionConfiguration: URLSessionConfiguration = .ephemeral, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> Session {
+            guard Firefox.isAvailable else { throw InitializationError() }
             let launcher = try await GeckoLauncher(driver: self)
             return try await Session(launcher: launcher, context: SwiftContext(fileID: fileID, line: line, function: function), invoker: #function, urlSessionConfiguration: urlSessionConfiguration)
         }
@@ -46,7 +47,7 @@ extension WebDriver {
         /// > ```sh
         /// >  $ brew install geckodriver
         /// > ```
-        public var isAvailable: Bool {
+        public static var isAvailable: Bool {
             FinderItem(at: "/opt/homebrew/bin/geckodriver").exists
         }
         

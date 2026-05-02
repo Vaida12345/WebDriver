@@ -15,6 +15,7 @@ extension Session {
         case initialConnectionFailed(String, any Error)
         case connectionLost
         case badResponse(code: Int, message: String?)
+        case invalidURL(String)
         
         
         public var title: String? {
@@ -25,6 +26,8 @@ extension Session {
                 "Connection Lost"
             case .badResponse(let code, _):
                 "Bad Response (Code \(code))"
+            case .invalidURL:
+                "Invalid URL"
             }
         }
         
@@ -36,6 +39,8 @@ extension Session {
                 "Connection Lost"
             case .badResponse(_, let message):
                 message ?? "(not decodable as String)"
+            case .invalidURL(let string):
+                "\"\(string)\" is not a valid URL"
             }
         }
         
