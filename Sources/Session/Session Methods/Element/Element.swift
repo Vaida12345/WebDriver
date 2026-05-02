@@ -62,11 +62,17 @@ extension Session.Window {
         
         
         @discardableResult
-        internal func parser(_ method: Session.HTTPMethod, _ partial: String, json: [String : Any]? = nil, context: SwiftContext, invoker: StaticString = #function) async throws -> JSONParser? {
+        internal func parser(_ method: Session.HTTPMethod, _ partial: String, json: [String : Any]? = nil, context: SwiftContext, invoker: StaticString = #function) async throws -> JSONParser {
             try await self.window.becomeFirstResponder(fileID: context.fileID, line: context.line, function: context.function)
             
-            let (data, _) = try await self.window.session.data(method, "/session/\(self.window.session.id)/element/\(self.id)/\(partial)", data: json.map { try JSONSerialization.data(withJSONObject: $0) }, context: context, origin: .element(self), invoker: invoker)
-            return try? JSONParser(data: data)
+            let (data, _) = try await self.window.session.data(
+                method,
+                "/session/\(self.window.session.id)/element/\(self.id)/\(partial)",
+                data: json.map { try JSONSerialization.data(withJSONObject: $0) },
+                context: context,
+                origin: .element(self),
+                invoker: invoker)
+            return try JSONParser(data: data)
         }
         
         

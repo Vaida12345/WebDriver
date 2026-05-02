@@ -28,7 +28,7 @@ extension Element {
     
     /// Sends a Javascript code execution that forces clicks.
     public func forceClick(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
-        let _ = try await self.window.execute("\(self).click();", fileID: fileID, line: line, function: function)
+        let _ = try await self.window.execute("\(self).click();", fileID: fileID, line: line, function: function) // the interpolation is fine as we use a custom one.
     }
     
     /// Clears the text content of an input or textarea element in the W3C WebDriver standard.

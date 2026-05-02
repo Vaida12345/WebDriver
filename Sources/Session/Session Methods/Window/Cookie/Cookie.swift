@@ -33,7 +33,7 @@ extension Session.Window {
         /// The expiration date of the cookie.
         ///
         /// After this date, the cookie is no longer valid.
-        public let expiry: Date
+        public let expiry: Date?
         
         /// Indicates whether the cookie is marked as `HttpOnly`.
         ///
@@ -63,11 +63,15 @@ extension Session.Window {
                 "secure": secure,
                 "httpOnly": httpOnly,
                 "value": value,
-                "path": path
+                "path": path,
             ]
             
             if let sameSite {
                 map["sameSite"] = sameSite.rawValue
+            }
+            
+            if let expiry {
+                map["expiry"] = expiry.timeIntervalSince1970
             }
             
             return map
@@ -77,7 +81,7 @@ extension Session.Window {
         init(parser: JSONParser) throws {
             self.domain = try parser.decode(String.self, forKey: "domain")
             self.secure = try parser.decode(Bool.self, forKey: "secure")
-            self.expiry = try Date(timeIntervalSince1970: parser.decode(Double.self, forKey: "expiry"))
+            self.expiry = try parser.decodeIfPresent(Double.self, forKey: "expiry").map(Date.init(timeIntervalSince1970:))
             self.httpOnly = try parser.decode(Bool.self, forKey: "httpOnly")
             self.value = try parser.decode(String.self, forKey: "value")
             self.path = try parser.decode(String.self, forKey: "path")

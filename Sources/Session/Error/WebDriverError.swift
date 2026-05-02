@@ -24,7 +24,7 @@ public struct WebDriverError: GenericError, @unchecked Sendable {
     public let message: String
     
     /// The stack trace provided by the server.
-    public let stackTrace: String
+    public let stackTrace: String?
     
     /// Additionally data provided by the server.
     public let data: JSONParser?
@@ -53,7 +53,7 @@ public struct WebDriverError: GenericError, @unchecked Sendable {
         self.statusCode = response.statusCode
         self.code = try ErrorCode(rawValue: parser.decode(String.self, forKey: "error"))
         self.message = try parser.decode(String.self, forKey: "message")
-        self.stackTrace = try parser.decode(String.self, forKey: "stacktrace")
+        self.stackTrace = try parser.decodeIfPresent(String.self, forKey: "stacktrace")
         self.data = try? parser.decode(JSONParser.self, forKey: "data")
         
         self.context = context

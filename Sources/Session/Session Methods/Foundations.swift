@@ -13,11 +13,11 @@ extension Session {
     
     /// Close the connection.
     public func close(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
+        defer { self.launcher.stop() }
         let _ = try await self.data(.delete, "session/\(id)", data: nil,
                                     context: SwiftContext(fileID: fileID, line: line, function: function),
                                     origin: .session(self),
                                     invoker: #function)
-        self.launcher.stop()
     }
     
     

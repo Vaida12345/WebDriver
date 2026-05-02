@@ -121,7 +121,7 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
         guard let response = response as? HTTPURLResponse else { return (data, response) }
         
         switch response.statusCode {
-        case 200:
+        case 200, 201, 202, 203, 204, 205, 206, 207, 208, 226:
             return (data, response)
             
         case 400, 404, 405, 500:

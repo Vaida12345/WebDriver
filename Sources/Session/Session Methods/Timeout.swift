@@ -17,16 +17,22 @@ extension Session {
         /// The maximum time that WebDriver will wait for a synchronous JavaScript to execute before throwing an error.
         ///
         /// This is particularly useful when you execute scripts using WebDriver's `execute_script` method. If the script takes longer than the set timeout, the WebDriver throws a "script timeout" error (`script timeout`).
+        ///
+        /// - Important: Must be positive.
         public var script: Duration?
         
         /// The maximum time WebDriver will wait for a page load to complete before throwing a "timeout" error.
         ///
         /// This is crucial during navigation activities (like clicking a link where the destination page takes a long time to fully load). If the navigation takes longer than this timeout, WebDriver will terminate the operation and return a `timeout` error.
+        ///
+        /// - Important: Must be positive.
         public var pageLoad: Duration?
         
         /// The maximum time that WebDriver should wait when searching for elements.
         ///
         /// If an element is not immediately visible or available, WebDriver will keep retrying the find operation for the duration specified by the implicit timeout. After exceeding this time, if the element is still not found, only then it will throw a `no such element` error.
+        ///
+        /// - Important: Must be positive.
         public var implicit: Duration?
         
         
@@ -58,12 +64,15 @@ extension Session {
         public func encode() -> [String : Any] {
             var results: [String : Any] = [:]
             if let script {
+                precondition(script.seconds >= 0)
                 results["script"] = Int(script.seconds * 1e3)
             }
             if let pageLoad {
+                precondition(pageLoad.seconds >= 0)
                 results["pageLoad"] = Int(pageLoad.seconds * 1e3)
             }
             if let implicit {
+                precondition(implicit.seconds >= 0)
                 results["implicit"] = Int(implicit.seconds * 1e3)
             }
             return results

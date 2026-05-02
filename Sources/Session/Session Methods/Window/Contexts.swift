@@ -41,7 +41,7 @@ extension Session {
         let parser = try JSONParser(data: data)
         let value = try parser.decode(JSONParser.self, forKey: "value")
         let id = try value.decode(String.self, forKey: "handle")
-        let type = try Window.WindowType(rawValue: value.decode(String.self, forKey: "type"))!
+        let type = try Window.WindowType(rawValue: value.decode(String.self, forKey: "type"))
         
         return Window(session: self, id: id, type: type, context: SwiftContext(fileID: fileID, line: line, function: function))
     }
