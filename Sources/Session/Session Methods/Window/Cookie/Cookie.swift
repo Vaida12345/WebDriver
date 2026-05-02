@@ -53,19 +53,24 @@ extension Session.Window {
         /// The SameSite policy of the cookie.
         ///
         /// Controlling cross-site request behavior.
-        public let sameSite: CrossSiteRequestBehavior
+        public let sameSite: CrossSiteRequestBehavior?
         
         
         func makeJSON() -> [String : Any] {
-            [
+            var map: [String : Any] = [
                 "name": name,
                 "domain": domain,
                 "secure": secure,
                 "httpOnly": httpOnly,
                 "value": value,
-                "path": path,
-                "sameSite": sameSite.rawValue
+                "path": path
             ]
+            
+            if let sameSite {
+                map["sameSite"] = sameSite.rawValue
+            }
+            
+            return map
         }
         
         
@@ -76,7 +81,7 @@ extension Session.Window {
             self.httpOnly = try parser.decode(Bool.self, forKey: "httpOnly")
             self.value = try parser.decode(String.self, forKey: "value")
             self.path = try parser.decode(String.self, forKey: "path")
-            self.sameSite = try CrossSiteRequestBehavior(rawValue: parser.decode(String.self, forKey: "sameSite"))!
+            self.sameSite = try CrossSiteRequestBehavior(rawValue: parser.decode(String.self, forKey: "sameSite"))
             self.name = try parser.decode(String.self, forKey: "name")
         }
         

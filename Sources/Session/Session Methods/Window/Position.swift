@@ -151,7 +151,7 @@ extension Session.Window {
     public func fullscreen(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> CGRect {
         try await self.becomeFirstResponder(fileID: fileID, line: line, function: function)
         
-        let (data, _) = try await self.session.data(.post, "session/\(self.session.id)/window/minimize", data: nil,
+        let (data, _) = try await self.session.data(.post, "session/\(self.session.id)/window/fullscreen", data: nil,
                                                     context: SwiftContext(fileID: fileID, line: line, function: function),
                                                     origin: .window(self),
                                                     invoker: #function)

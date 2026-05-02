@@ -8,6 +8,7 @@
 import Foundation
 import OSLog
 import FinderItem
+import Essentials
 
 
 final class GeckoLauncher: WebDriverLauncher {
@@ -28,7 +29,7 @@ final class GeckoLauncher: WebDriverLauncher {
            let options = driver.capabilities["moz:firefoxOptions"] as? [String : Any],
            let args = options["args"] as? [String],
            let firstIndex = args.firstIndex(of: "-profile"),
-           args.count >= firstIndex + 1 {
+           args.count > firstIndex + 1 {
             let profile = args[firstIndex + 1]
             do {
                 try FinderItem(at: profile).removeIfExists()
@@ -40,13 +41,15 @@ final class GeckoLauncher: WebDriverLauncher {
     }
     
     
-    init(driver: Driver) async throws {
+    init(driver: Driver, maxRetryCount: Int = 10) async throws {
         self.driver = driver
         
         var manager = ShellManager()
         var port = UInt16.random(in: 49152...65535)
         
-        while true {
+        var counter: Int = 0
+        
+        while counter < maxRetryCount {
             try manager.run(arguments: "/opt/homebrew/bin/geckodriver -p \(port)")
             var stdout = manager.lines().makeAsyncIterator()
             
@@ -55,6 +58,7 @@ final class GeckoLauncher: WebDriverLauncher {
                 manager.terminate()
                 manager = ShellManager()
                 port = UInt16.random(in: 49152...65535)
+                counter += 1
                 
                 continue
             }
@@ -70,6 +74,8 @@ final class GeckoLauncher: WebDriverLauncher {
             }
             return
         }
+        
+        throw WebDriver.InitializationError.exceededMaxRetries(maxRetryCount)
     }
     
     

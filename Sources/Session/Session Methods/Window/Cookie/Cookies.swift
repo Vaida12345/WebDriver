@@ -47,7 +47,7 @@ extension Session.Window {
         public func append(_ cookie: Cookie, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
             try await self.window.becomeFirstResponder(fileID: fileID, line: line, function: function)
             
-            let _ = try await self.window.session.data(.post, "/session/\(self.window.session.id)/cookie", json: cookie.makeJSON(),
+            let _ = try await self.window.session.data(.post, "/session/\(self.window.session.id)/cookie", json: ["cookie" : cookie.makeJSON()],
                                                        context: SwiftContext(fileID: fileID, line: line, function: function),
                                                        origin: .window(self.window),
                                                        invoker: #function)

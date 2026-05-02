@@ -56,8 +56,8 @@ extension Session.Window {
                 "margin": [
                     "top": margin.top,
                     "bottom": margin.bottom,
-                    "leading": margin.leading,
-                    "trailing": margin.trailing
+                    "left": margin.leading,
+                    "right": margin.trailing
                 ]
             ],
             context: SwiftContext(fileID: fileID, line: line, function: function),

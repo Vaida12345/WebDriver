@@ -10,9 +10,23 @@ import Essentials
 
 extension WebDriver {
     
-    public struct InitializationError: GenericError {
+    public enum InitializationError: GenericError {
+        case driverNotAvailable
+        case urlNotSupported
+        case internalCapabilityCastError
+        case exceededMaxRetries(Int)
+        
         public var message: String {
-            "This web driver is not available."
+            switch self {
+            case .driverNotAvailable:
+                "This web driver is not available."
+            case .urlNotSupported:
+                "This URL is not supported."
+            case .internalCapabilityCastError:
+                "Failed to cast the internal capability to the requested one."
+            case .exceededMaxRetries(let maxRetries):
+                "Failed to create a new web driver after \(maxRetries) retries."
+            }
         }
     }
     
