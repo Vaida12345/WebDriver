@@ -9,7 +9,6 @@
 import Foundation
 import FinderItem
 import Essentials
-import Darwin
 
 
 /// A convenient interface to run shell.
@@ -77,9 +76,12 @@ internal final class ShellManager: Equatable, Hashable, Identifiable, @unchecked
     private var task: Process
     
     /// The one-way communications channel between related processes.
-    private let standardInput: Pipe
-    private let standardOutput: Pipe
-    private let standardError: Pipe
+    private var standardInput: Pipe
+    private var standardOutput: Pipe
+    private var standardError: Pipe
+    
+    /// Indicates whether this manager has launched at least one process.
+    private var hasLaunched = false
     
     /// Returns a boolean value indicating whether the task is running.
     public var isRunning: Bool {
@@ -104,24 +106,75 @@ internal final class ShellManager: Equatable, Hashable, Identifiable, @unchecked
         self.standardInput = Pipe()
         self.standardOutput = Pipe()
         self.standardError = Pipe()
+        self.configureTask()
+    }
+    
+    /// Tears down the managed process when this manager is deallocated.
+    deinit {
+        if task.isRunning {
+            task.terminate()
+        }
+        task.terminationHandler = nil
+        closePipeHandles()
+    }
+    
+    /// Errors that can occur when starting a process.
+    public enum RunError: GenericError {
+        case alreadyRunning
         
+        public var title: String {
+            "cannot run shell task"
+        }
+        
+        public var message: String {
+            switch self {
+            case .alreadyRunning:
+                "This ShellManager is already running a process"
+            }
+        }
+    }
+    
+    /// Configures stdio and baseline behavior for the current process.
+    private func configureTask() {
         task.standardInput = standardInput
         task.standardOutput = standardOutput
         task.standardError = standardError
     }
     
-    deinit {
-        task.terminate()
-        task.terminationHandler = nil
+    /// Closes all file handles attached to the current pipes.
+    private func closePipeHandles() {
+        standardInput.fileHandleForWriting.closeFile()
+        standardInput.fileHandleForReading.closeFile()
+        standardOutput.fileHandleForWriting.closeFile()
+        standardOutput.fileHandleForReading.closeFile()
+        standardError.fileHandleForWriting.closeFile()
+        standardError.fileHandleForReading.closeFile()
+    }
+    
+    /// Replaces process and pipes to make the manager reusable after a completed run.
+    private func resetTask() {
+        closePipeHandles()
+        self.task = Process()
+        self.standardInput = Pipe()
+        self.standardOutput = Pipe()
+        self.standardError = Pipe()
+        self.configureTask()
     }
     
     /// Runs a task with a specified executable and arguments.
     ///
     /// - Parameters:
-    ///   - executable: The optional executable file
-    ///   - arguments: The arguments
-    ///   - workingDirectory: Specify the optional working directory
+    ///   - executable: The optional executable file.
+    ///   - arguments: The arguments passed to the executable or shell.
+    ///   - workingDirectory: The optional working directory.
+    /// - Throws: ``RunError`` if the manager is currently running a process, plus any system launch error.
     public func run(executable: FinderItem? = nil, arguments: String, workingDirectory: FinderItem? = nil) throws {
+        guard !task.isRunning else { throw RunError.alreadyRunning }
+        
+        if hasLaunched {
+            resetTask()
+        }
+        
         self.task.currentDirectoryURL = workingDirectory?.url
         
         if let item = executable {
@@ -129,10 +182,12 @@ internal final class ShellManager: Equatable, Hashable, Identifiable, @unchecked
             self.task.arguments = [arguments]
             try self.task.run()
         } else {
-            self.task.launchPath = "/bin/zsh"
+            self.task.executableURL = URL(filePath: "/bin/zsh")
             self.task.arguments = ["-c", arguments]
             try self.task.run()
         }
+        
+        hasLaunched = true
     }
     
     /// Reads results from the `Process`.
@@ -182,28 +237,37 @@ internal final class ShellManager: Equatable, Hashable, Identifiable, @unchecked
     
     public enum WritingError: GenericError {
         case cannotFormDataFromString
+        case processNotRunning
         
         public var title: String {
-            "cannot write a string to `stdin`"
+            "cannot write to `stdin`"
         }
         
         public var message: String {
-            "Cannot form data from given string"
+            switch self {
+            case .cannotFormDataFromString:
+                "Cannot form data from given string"
+            case .processNotRunning:
+                "Cannot write because no running process is attached"
+            }
         }
     }
     
-    /// Writes a data to stdin.
+    /// Writes data to stdin.
+    ///
+    /// - Parameter value: The bytes to send to the running process.
+    /// - Throws: ``WritingError/processNotRunning`` when no process is active, or any `FileHandle` write error.
     public func write(_ value: some DataProtocol) throws {
+        guard task.isRunning else { throw WritingError.processNotRunning }
         try self.standardInput.fileHandleForWriting.write(contentsOf: value)
     }
     
-    /// Wait until exit.
+    /// Waits until the managed process exits.
     ///
-    /// Blocks the process until the receiver is finished.
-    ///
-    /// = Returns: The termination status, `0` for success.
+    /// - Returns: The process termination status, or `-1` if no process has been launched yet.
     @discardableResult
     public func wait() -> Int32 {
+        guard hasLaunched else { return -1 }
         task.waitUntilExit()
         return task.terminationStatus
     }
@@ -222,9 +286,12 @@ internal final class ShellManager: Equatable, Hashable, Identifiable, @unchecked
         task.resume()
     }
     
-    /// Sends a terminate signal to the receiver and all of its subtasks.
+    /// Requests the managed process to terminate if it is currently running.
+    ///
+    /// This method avoids sending signals when no child process is active.
     public func terminate() {
-        kill(task.processIdentifier, SIGKILL)
+        guard task.isRunning else { return }
+        task.terminate()
     }
     
     /// A completion block the system invokes when the task completes.
