@@ -17,7 +17,7 @@ let package = Package(
         .package(url: "https://github.com/Vaida12345/Essentials.git", from: "1.1.9"),
         .package(url: "https://github.com/Vaida12345/NativeImage.git", from: "1.0.0"),
         .package(url: "https://github.com/Vaida12345/JSONParser.git", from: "1.2.0"),
-        .package(url: "https://github.com/swiftlang/swift-subprocess.git", .upToNextMinor(from: "0.4.0"))
+        .package(url: "https://github.com/Vaida12345/ChildProcess.git", from: "0.2.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -25,8 +25,7 @@ let package = Package(
         .target(
             name: "WebDriver",
             dependencies: [
-                "FinderItem", "Essentials", "NativeImage", "JSONParser",
-                .product(name: "Subprocess", package: "swift-subprocess")
+                "FinderItem", "Essentials", "NativeImage", "JSONParser", "ChildProcess"
             ],
             path: "Sources"
         ),

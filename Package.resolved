@@ -1,6 +1,15 @@
 {
-  "originHash" : "9755037faf0e860e82228408965261c5a5a6e0eb0902c03c9c9137afe5be907d",
+  "originHash" : "4578880c39b878532abe06eb8454d595c7defe6a9b65fc5a7004fff94764ea2f",
   "pins" : [
+    {
+      "identity" : "childprocess",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Vaida12345/ChildProcess.git",
+      "state" : {
+        "revision" : "7aee14f7a89334b1e430a6553556445a58add620",
+        "version" : "0.2.0"
+      }
+    },
     {
       "identity" : "detaileddescription",
       "kind" : "remoteSourceControl",
@@ -44,24 +53,6 @@
       "state" : {
         "revision" : "3b76db00f7ca0198829e1fc0d7d3bf1000b2c502",
         "version" : "1.0.5"
-      }
-    },
-    {
-      "identity" : "swift-subprocess",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/swiftlang/swift-subprocess.git",
-      "state" : {
-        "revision" : "13d087685b95d64d6aac9b94500d347bbe84c39b",
-        "version" : "0.4.0"
-      }
-    },
-    {
-      "identity" : "swift-system",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-system",
-      "state" : {
-        "revision" : "7c6ad0fc39d0763e0b699210e4124afd5041c5df",
-        "version" : "1.6.4"
       }
     }
   ],

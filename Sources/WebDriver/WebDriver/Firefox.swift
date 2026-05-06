@@ -7,7 +7,7 @@
 
 import Foundation
 import FinderItem
-import Subprocess
+import ChildProcess
 
 
 extension WebDriver {
@@ -80,9 +80,9 @@ extension WebDriver {
         /// Finds `geckodriver` from the current process `PATH`.
         private static func geckoDriverPathFromPATH() async -> String? {
             do {
-                let path = try await run(.name("which"), arguments: ["geckodriver"], output: .string(limit: 4096))
+                let (path, _) = try await ChildProcess.run(.name("which"), arguments: ["geckodriver"])
                 
-                guard let output = path.standardOutput?.trimmingCharacters(in: .whitespacesAndNewlines),
+                guard let output = path?.trimmingCharacters(in: .whitespacesAndNewlines),
                       !output.isEmpty,
                       FileManager.default.isExecutableFile(atPath: output) else { return nil }
                 return output

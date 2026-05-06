@@ -9,11 +9,13 @@ import Foundation
 import OSLog
 import FinderItem
 import Essentials
+import ChildProcess
+import System
 
 
 final class GeckoLauncher: WebDriverLauncher {
     
-    private let manager: ShellManager
+    private let process: ChildProcess
     
     public let driver: WebDriver.Firefox
     
@@ -23,7 +25,7 @@ final class GeckoLauncher: WebDriverLauncher {
     
     
     public func stop() {
-        self.manager.terminate()
+        self.process.terminate()
         
         if driver.flags.contains(.deleteProfileAfterUse),
            let options = driver.capabilities["moz:firefoxOptions"] as? [String : Any],
@@ -49,23 +51,23 @@ final class GeckoLauncher: WebDriverLauncher {
     init(driver: Driver, maxRetryCount: Int = 10) async throws {
         self.driver = driver
         
-        var manager = ShellManager()
-        var port = UInt16.random(in: 49152...65535)
-        
         var counter: Int = 0
+        var port = UInt16.random(in: 49152...65535)
         
         guard let geckoDriverPath = WebDriver.Firefox.geckoDriverPath else {
             throw WebDriver.InitializationError.driverNotAvailable
         }
+        
+        var process = try ChildProcess.makeProcess(.path(FilePath(geckoDriverPath)), arguments: ["-p", port.description])
+        
 
         while counter < maxRetryCount {
-            try manager.run(arguments: "\(geckoDriverPath) -p \(port)")
-            var stdout = manager.lines().makeAsyncIterator()
+            var stdout = process.stdout.bytes.lines.makeAsyncIterator()
             
             let line = try await stdout.next()
             guard let (_, url, port) = line?.wholeMatch(of: /\d+\s+geckodriver\s+INFO\s+Listening on (\d+\.\d+\.\d+\.\d+)\:(\d+)/)?.output else {
-                manager.terminate()
-                manager = ShellManager()
+                process.terminate()
+                process = try ChildProcess.makeProcess(.path(FilePath(geckoDriverPath)), arguments: ["-p", port.description])
                 port = UInt16.random(in: 49152...65535)
                 counter += 1
                 
@@ -77,10 +79,7 @@ final class GeckoLauncher: WebDriverLauncher {
             
             self.url = URL(string: "\(url)")!
             self.port = UInt16(port)!
-            self.manager = manager
-            self.manager.terminationHandler = { _ in
-                logger.info("geockodriver terminated")
-            }
+            self.process = process
             return
         }
         

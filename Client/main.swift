@@ -8,7 +8,6 @@
 import Foundation
 import WebDriver
 import FinderItem
-import Subprocess
 
 
 let driver = try await WebDriver.Firefox()

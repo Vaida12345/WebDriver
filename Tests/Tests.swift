@@ -13,7 +13,7 @@ import WebDriver
 struct WebDriverTests {
     
     @Test func example() async throws {
-        let driver = WebDriver.Firefox()
+        let driver = try WebDriver.Firefox()
         let session = try await driver.startSession()
         
         try await session.open("http://example.com")
