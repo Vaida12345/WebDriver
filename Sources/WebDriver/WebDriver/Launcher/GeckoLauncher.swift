@@ -48,42 +48,61 @@ final class GeckoLauncher: WebDriverLauncher {
     /// - Parameters:
     ///   - driver: The configured Firefox driver.
     ///   - maxRetryCount: Number of random-port retries before failing.
-    init(driver: Driver, maxRetryCount: Int = 10) async throws {
+    init(driver: Driver, maxRetryCount: Int = 3) async throws {
         self.driver = driver
-        
-        var counter: Int = 0
-        var port = UInt16.random(in: 49152...65535)
         
         guard let geckoDriverPath = WebDriver.Firefox.geckoDriverPath else {
             throw WebDriver.InitializationError.driverNotAvailable
         }
         
-        var process = try ChildProcess.makeProcess(.path(FilePath(geckoDriverPath)), arguments: ["-p", port.description])
+        let port = generateRandomPort()
+        let process = try ChildProcess.makeProcess(
+            .path(FilePath(geckoDriverPath)),
+            arguments: ["--host", "127.0.0.1", "-p", port.description]
+        )
         
-
-        while counter < maxRetryCount {
-            var stdout = process.stdout.bytes.lines.makeAsyncIterator()
-            
-            let line = try await stdout.next()
-            guard let (_, url, port) = line?.wholeMatch(of: /\d+\s+geckodriver\s+INFO\s+Listening on (\d+\.\d+\.\d+\.\d+)\:(\d+)/)?.output else {
-                process.terminate()
-                process = try ChildProcess.makeProcess(.path(FilePath(geckoDriverPath)), arguments: ["-p", port.description])
-                port = UInt16.random(in: 49152...65535)
-                counter += 1
-                
-                continue
-            }
-            
-            let logger = Logger(subsystem: "GeckoLauncher", category: #function)
-            logger.info("geckodriver launched at \(url):\(port)")
-            
-            self.url = URL(string: "\(url)")!
-            self.port = UInt16(port)!
-            self.process = process
-            return
+        try await Self.waitUntilReady(host: "127.0.0.1", port: port)
+        
+        let logger = Logger(subsystem: "GeckoLauncher", category: #function)
+        logger.info("geckodriver launched at 127.0.0.1:\(port)")
+        
+        self.url = URL(string: "127.0.0.1")!
+        self.port = port
+        self.process = process
+    }
+    
+    /// Waits until `geckodriver` reports ready on `/status`.
+    ///
+    /// - Parameters:
+    ///   - host: The loopback host used by `geckodriver`.
+    ///   - port: The listening port used by `geckodriver`.
+    ///   - timeout: Maximum amount of time to wait for readiness.
+    private static func waitUntilReady(host: String, port: UInt16, timeout: Duration = .seconds(10)) async throws {
+        guard let statusURL = URL(string: "http://\(host):\(port)/status") else {
+            throw WebDriver.InitializationError.driverStartFailed
         }
         
-        throw WebDriver.InitializationError.exceededMaxRetries(maxRetryCount)
+        let deadline = ContinuousClock.now.advanced(by: timeout)
+        let session = URLSession(configuration: .ephemeral)
+        defer { session.invalidateAndCancel() }
+        
+        while ContinuousClock.now < deadline {
+            do {
+                let (_, response) = try await session.data(from: statusURL)
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw WebDriver.InitializationError.driverStartFailed
+                }
+                guard (200..<500).contains(httpResponse.statusCode) else {
+                    try await Task.sleep(for: .milliseconds(100))
+                    continue
+                }
+                return
+            } catch {
+                try await Task.sleep(for: .milliseconds(100))
+            }
+        }
+        
+        throw WebDriver.InitializationError.driverStartFailed
     }
     
     

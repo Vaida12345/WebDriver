@@ -9,10 +9,12 @@ import Foundation
 import WebDriver
 import FinderItem
 
+let url = URL(string: "https://www.google.com")!
 
 let driver = try await WebDriver.Firefox()
     .pageLoadStrategy(.eager)
     .profile(location: "/Users/vaida/Library/Application Support/Firefox/Profiles/2hzm7hvo.Default User")
+    .new(tab: url)
 
 print(driver.capabilities)
 
@@ -24,7 +26,6 @@ assert(code == .no_such_element)
 print(code == .no_such_element)
 
 do {
-    try await session.open(url: URL(string: "https://www.google.com")!)
     let window = try await session.window
     let element = try await window.findElement(where: { $0.tag == "textarea" && $0.title == "Search" })
     try await element.write("Swift")

@@ -12,6 +12,7 @@ extension WebDriver {
     
     public enum InitializationError: GenericError {
         case driverNotAvailable
+        case driverStartFailed
         case urlNotSupported
         case internalCapabilityCastError
         case exceededMaxRetries(Int)
@@ -20,6 +21,8 @@ extension WebDriver {
             switch self {
             case .driverNotAvailable:
                 "This web driver is not available."
+            case .driverStartFailed:
+                "Driver start failed."
             case .urlNotSupported:
                 "This URL is not supported."
             case .internalCapabilityCastError:
