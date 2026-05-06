@@ -55,20 +55,34 @@ final class GeckoLauncher: WebDriverLauncher {
             throw WebDriver.InitializationError.driverNotAvailable
         }
         
-        let port = generateRandomPort()
-        let process = try ChildProcess.makeProcess(
-            .path(FilePath(geckoDriverPath)),
-            arguments: ["--host", "127.0.0.1", "-p", port.description]
-        )
+        let retryCount = max(1, maxRetryCount)
+        var lastError: Error?
         
-        try await Self.waitUntilReady(host: "127.0.0.1", port: port)
+        for attempt in 1...retryCount {
+            let selectedPort = generateRandomPort()
+            do {
+                let process = try ChildProcess.makeProcess(
+                    .path(FilePath(geckoDriverPath)),
+                    arguments: ["--host", "127.0.0.1", "-p", selectedPort.description]
+                )
+                
+                try await Self.waitUntilReady(host: "127.0.0.1", port: selectedPort)
+                
+                let logger = Logger(subsystem: "GeckoLauncher", category: #function)
+                logger.info("geckodriver launched at 127.0.0.1:\(selectedPort) (attempt \(attempt)/\(retryCount))")
+                
+                self.url = URL(string: "127.0.0.1")!
+                self.port = selectedPort
+                self.process = process
+                return
+            } catch {
+                lastError = error
+            }
+        }
         
         let logger = Logger(subsystem: "GeckoLauncher", category: #function)
-        logger.info("geckodriver launched at 127.0.0.1:\(port)")
-        
-        self.url = URL(string: "127.0.0.1")!
-        self.port = port
-        self.process = process
+        logger.error("Failed to launch geckodriver after \(retryCount) attempts. Last error: \(String(describing: lastError))")
+        throw WebDriver.InitializationError.driverStartFailed
     }
     
     /// Waits until `geckodriver` reports ready on `/status`.
