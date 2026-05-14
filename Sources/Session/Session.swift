@@ -101,9 +101,6 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
             request.httpBody = "{}".data(using: .utf8)
         }
         
-        let logger = Logger(subsystem: "Session", category: #function)
-        logger.info("Made request: \(request)")
-        
         return request
     }
     
