@@ -33,6 +33,7 @@ final class GeckoLauncher: WebDriverLauncher {
            let firstIndex = args.firstIndex(of: "-profile"),
            args.count > firstIndex + 1 {
             let profile = args[firstIndex + 1]
+            precondition(profile.hasSuffix("tempprofile"))
             do {
                 try FinderItem(at: profile).removeIfExists()
             } catch {

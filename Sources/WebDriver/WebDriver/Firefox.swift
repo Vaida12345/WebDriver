@@ -146,7 +146,7 @@ public extension WebDriver.Firefox {
     ///
     /// This implementation will create a temp copy of the profile to avoid conflicts.
     func profile(location: FinderItem) async throws -> WebDriver.Firefox {
-        let temp = try FinderItem.temporaryDirectory(intent: .general)/"\(UUID()).tempprofile"
+        let temp = FinderItem.temporaryDirectory/"\(UUID()).tempprofile"
         try location.copy(to: temp)
         var new = try self.appendingFirefoxArg(arg: "-profile").appendingFirefoxArg(arg: temp.path)
         new.flags.insert(.deleteProfileAfterUse)
