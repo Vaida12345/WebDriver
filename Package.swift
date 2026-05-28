@@ -13,11 +13,11 @@ let package = Package(
         .library(name: "WebDriver", targets: ["WebDriver"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/Vaida12345/FinderItem.git", from: "2.0.1"),
-        .package(url: "https://github.com/Vaida12345/Essentials.git", from: "1.1.9"),
+        .package(url: "https://github.com/Vaida12345/FinderItem.git", from: "2.2.1"),
+        .package(url: "https://github.com/Vaida12345/Essentials.git", from: "1.2.1"),
         .package(url: "https://github.com/Vaida12345/NativeImage.git", from: "1.3.0"),
-        .package(url: "https://github.com/Vaida12345/JSONParser.git", from: "1.2.0"),
-        .package(url: "https://github.com/Vaida12345/ChildProcess.git", from: "0.2.0"),
+        .package(url: "https://github.com/Vaida12345/JSONParser.git", from: "1.3.1"),
+        .package(url: "https://github.com/Vaida12345/ChildProcess.git", from: "0.4.1"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.

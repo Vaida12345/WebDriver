@@ -6,6 +6,7 @@
 //
 
 import CoreGraphics
+import Essentials
 
 
 extension Element {
@@ -98,38 +99,75 @@ extension Element {
     
     /// Load the attribute.
     public func load(_ attribute: LoadableAttribute, at source: LoadSource = .original, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> String {
-        switch source {
+        let parser = switch source {
         case .original:
-            try await self.parser(.get, "attribute/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function)).decode(String.self, forKey: "value")
+            try await self.parser(.get, "attribute/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function))
         case .script:
-            try await self.parser(.get, "property/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function)).decode(String.self, forKey: "value")
+            try await self.parser(.get, "property/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function))
         case .latest:
-            try await self.parser(.get, "css/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function)).decode(String.self, forKey: "value")
+            try await self.parser(.get, "css/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function))
+        }
+        
+        do {
+            return try parser.decode(String.self, forKey: "value")
+        } catch let caught {
+            guard case DecodingError.valueNotFound = caught else { throw caught }
+            throw ElementError.noSuchAttribute(attribute: attribute.rawValue, source: source, underlyingError: caught, context: SwiftContext(fileID: fileID, line: line, function: function))
         }
     }
     
     /// Load the attribute.
     public func load(_ attribute: String, at source: LoadSource = .original, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> String {
-        switch source {
-        case .original:
-            try await self.parser(.get, "attribute/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function)).decode(String.self, forKey: "value")
-        case .script:
-            try await self.parser(.get, "property/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function)).decode(String.self, forKey: "value")
-        case .latest:
-            try await self.parser(.get, "css/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function)).decode(String.self, forKey: "value")
+        do {
+            switch source {
+            case .original:
+                return try await self.parser(.get, "attribute/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function)).decode(String.self, forKey: "value")
+            case .script:
+                return try await self.parser(.get, "property/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function)).decode(String.self, forKey: "value")
+            case .latest:
+                return try await self.parser(.get, "css/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function)).decode(String.self, forKey: "value")
+            }
+        } catch let caught {
+            guard case DecodingError.valueNotFound = caught else { throw caught }
+            throw ElementError.noSuchAttribute(attribute: attribute, source: source, underlyingError: caught, context: SwiftContext(fileID: fileID, line: line, function: function))
         }
     }
     
     
-    public enum LoadSource {
+    public enum ElementError: GenericError {
+        case noSuchAttribute(attribute: String, source: LoadSource, underlyingError: any Error, context: SwiftContext)
+
+        public var title: String? { "No Such Attribute" }
+
+        public var message: String {
+            switch self {
+            case .noSuchAttribute(let attribute, let source, let underlyingError, let context):
+                "Element does not have \(source.label) '\(attribute)' at \(context). Underlying: \(underlyingError)"
+            }
+        }
+
+        public static func == (lhs: ElementError, rhs: ElementError) -> Bool {
+            lhs.message == rhs.message
+        }
+    }
+
+    public enum LoadSource: Sendable {
         /// The original attribute in the HTML value.
         case original
-        
+
         /// The value that may have been modified by script.
         case script
-        
+
         /// The latest value obtained by inspecting the CSS value.
         case latest
+
+        var label: String {
+            switch self {
+            case .original: "attribute"
+            case .script:   "property"
+            case .latest:   "CSS value"
+            }
+        }
     }
     
     

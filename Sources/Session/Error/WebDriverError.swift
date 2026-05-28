@@ -13,7 +13,7 @@ import JSONParser
 
 /// Indicates web driver error.
 public struct WebDriverError: GenericError, @unchecked Sendable {
-    
+   
     /// The error code defined by the web driver protocol.
     public let code: ErrorCode
     
@@ -56,6 +56,17 @@ public struct WebDriverError: GenericError, @unchecked Sendable {
         self.stackTrace = try parser.decodeIfPresent(String.self, forKey: "stacktrace")
         self.data = try? parser.decode(JSONParser.self, forKey: "data")
         
+        self.context = context
+        self.origin = origin
+        self.invoker = invoker
+    }
+    
+    internal init(code: WebDriverError.ErrorCode, statusCode: Int, message: String, stackTrace: String? = nil, data: JSONParser? = nil, context: SwiftContext, origin: WebDriverError.Origin, invoker: StaticString) {
+        self.code = code
+        self.statusCode = statusCode
+        self.message = message
+        self.stackTrace = stackTrace
+        self.data = data
         self.context = context
         self.origin = origin
         self.invoker = invoker
