@@ -18,6 +18,8 @@ extension Session.Window {
     
     
     /// - throws: On time out, throws ``WaitingTimeout``.
+    ///
+    /// - Note: This method cannot be used to find elements inside a shadow content.
     public func wait(
         until condition: ElementWaitCondition,
         timeout: Duration,
@@ -29,6 +31,8 @@ extension Session.Window {
     
     
     /// - throws: On time out, throws ``WaitingTimeout``.
+    ///
+    /// - Note: This method cannot be used to find elements inside a shadow content.
     public func wait(
         until condition: ElementWaitCondition,
         timeout: Duration,

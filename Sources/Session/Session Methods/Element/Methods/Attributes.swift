@@ -11,7 +11,12 @@ import Essentials
 
 extension Element {
     
-    /// Returns the text as rendered.
+    /// Returns the visible text rendered by an element and its descendants.
+    ///
+    /// For example, this method will return `"world"` for
+    /// ```
+    /// <span>world</span>
+    /// ```
     public var text: String {
         get async throws {
             try await self.parser(.get, "text", context: .unavailable).decode(String.self, forKey: "value")
