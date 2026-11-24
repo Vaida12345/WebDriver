@@ -112,10 +112,17 @@ extension Session.Window {
     ///
     /// - Important: This does not necessarily mean the window is brought to front. This depends on the individual browser's implementations.
     public func becomeFirstResponder(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
+        try await self.becomeFirstResponder(context: SwiftContext(fileID: fileID, line: line, function: function))
+    }
+    
+    /// Makes the window the top level browsing context, reporting errors at `context`.
+    ///
+    /// Getters, which cannot take the caller's location, pass ``SwiftContext/unavailable``, so that errors do not point inside the package.
+    func becomeFirstResponder(context: SwiftContext) async throws {
         let _ = try await self.session.data(.post, "session/\(self.session.id)/window", json: ["handle" : self.id],
-                                            context: SwiftContext(fileID: fileID, line: line, function: function),
+                                            context: context,
                                             origin: .window(self),
-                                            invoker: #function)
+                                            invoker: "becomeFirstResponder(fileID:line:function:)")
     }
     
     /// Closes the window.

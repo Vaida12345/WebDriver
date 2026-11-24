@@ -92,7 +92,7 @@ extension WebDriver {
         /// 2. The directories in `PATH`.
         /// 3. Common macOS install paths, as apps launched from Finder get a minimal `PATH`.
         static var geckoDriverPath: String? {
-            let environment = ProcessInfo.processInfo.environment
+            let environment = DriverEnvironment.current
             let fileManager = FileManager.default
             
             if let override = environment["WEBDRIVER_GECKO_PATH"],

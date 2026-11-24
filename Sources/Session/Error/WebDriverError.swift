@@ -83,6 +83,8 @@ public struct WebDriverError: GenericError, @unchecked Sendable {
     
     
     public static func == (_ lhs: WebDriverError, _ rhs: WebDriverError) -> Bool {
+        lhs.code == rhs.code &&
+        lhs.message == rhs.message &&
         lhs.statusCode == rhs.statusCode &&
         lhs.stackTrace == rhs.stackTrace &&
         lhs.context == rhs.context &&

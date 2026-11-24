@@ -71,7 +71,7 @@ extension WebDriver {
         static var safariDriverPath: String? {
             let fileManager = FileManager.default
 
-            if let override = ProcessInfo.processInfo.environment["WEBDRIVER_SAFARI_PATH"],
+            if let override = DriverEnvironment.current["WEBDRIVER_SAFARI_PATH"],
                !override.isEmpty,
                fileManager.isExecutableFile(atPath: override) {
                 return override

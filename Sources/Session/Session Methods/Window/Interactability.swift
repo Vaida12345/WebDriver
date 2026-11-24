@@ -84,7 +84,7 @@ extension Session.Window {
     /// > The first responder is switched to `self`.
     public var activeElement: Element {
         get async throws {
-            try await self.becomeFirstResponder()
+            try await self.becomeFirstResponder(context: .unavailable)
             
             let (data, _) = try await self.session.data(.get, "/session/\(self.session.id)/element/active", data: nil, context: .unavailable, origin: .window(self), invoker: "Session.Window.activeElement")
             

@@ -22,7 +22,7 @@ extension Session.Window {
     /// > The first responder is switched to `self`.
     public var pageSource: String {
         get async throws {
-            try await self.becomeFirstResponder()
+            try await self.becomeFirstResponder(context: .unavailable)
             
             let (data, _) = try await self.session.data(.get, "session/\(self.session.id)/source", data: nil, context: .unavailable, origin: .window(self), invoker: #function)
             return try JSONParser(data: data).decode(String.self, forKey: "value")

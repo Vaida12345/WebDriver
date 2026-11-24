@@ -35,7 +35,7 @@ extension Session.Window {
         
         public var values: [Cookie] {
             get async throws {
-                try await self.window.becomeFirstResponder()
+                try await self.window.becomeFirstResponder(context: .unavailable)
                 
                 let (data, _) = try await self.window.session.data(.get, "/session/\(self.window.session.id)/cookie", data: nil, context: .unavailable, origin: .window(self.window), invoker: "Cookies.values")
                 let parser = try JSONParser(data: data)

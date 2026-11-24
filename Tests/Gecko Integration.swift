@@ -97,17 +97,16 @@ struct GeckoIntegrationTests {
 
     @Test(.timeLimit(.minutes(1)))
     func failingDriverFailsFast() async throws {
-        setenv("WEBDRIVER_GECKO_PATH", "/usr/bin/false", 1)
-        defer { unsetenv("WEBDRIVER_GECKO_PATH") }
-
-        let start = ContinuousClock.now
-        await #expect {
-            _ = try await WebDriver.Firefox().startSession()
-        } throws: { error in
-            guard case WebDriver.InitializationError.exceededMaxRetries(3, let output) = error else { return false }
-            return output.contains("exited with status 1")
+        try await DriverEnvironment.$override.withValue(["WEBDRIVER_GECKO_PATH": "/usr/bin/false"]) {
+            let start = ContinuousClock.now
+            await #expect {
+                _ = try await WebDriver.Firefox().startSession()
+            } throws: { error in
+                guard case WebDriver.InitializationError.exceededMaxRetries(3, let output) = error else { return false }
+                return output.contains("exited with status 1")
+            }
+            #expect(ContinuousClock.now - start < .seconds(3))
         }
-        #expect(ContinuousClock.now - start < .seconds(3))
     }
 
 }

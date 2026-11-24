@@ -138,4 +138,36 @@ struct RegressionTests {
         #expect(error?.code == .script_timeout)
     }
 
+    @Test func errorsWithDifferentCodesAreNotEqual() async throws {
+        let browser = try await MockBrowser(html: Self.html)
+        let session = try await browser.startSession()
+
+        let lhs = WebDriverError(code: .no_such_element, statusCode: 404, message: "message", context: .unavailable, origin: .session(session), invoker: #function)
+        let rhs = WebDriverError(code: .stale_element_reference, statusCode: 404, message: "message", context: .unavailable, origin: .session(session), invoker: #function)
+
+        #expect(lhs != rhs)
+        #expect(lhs == lhs)
+    }
+
+    // MARK: - Zero timeout
+
+    @Test func zeroTimeoutChecksOnce() async throws {
+        let browser = try await MockBrowser(html: Self.html)
+        let window = try await browser.startSession().window
+
+        let element = try await window.wait(until: .elementPresence, timeout: .zero, where: { $0.id == "enabled" })
+        #expect(try await element.load(.id) == "enabled")
+    }
+
+    // MARK: - Script interpolation
+
+    @Test func interpolatedStringsArePassedAsArguments() async throws {
+        let browser = try await MockBrowser(html: Self.html)
+        let window = try await browser.startSession().window
+
+        let text = #"a"b'c\d"#
+        #expect(try await window.execute("return \(text)").decode(String.self, forKey: "value") == text)
+        #expect(try await window.execute("return \(raw: "1 + 1") + \(3)").decode(Int.self, forKey: "value") == 5)
+    }
+
 }

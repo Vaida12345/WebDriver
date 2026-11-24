@@ -34,7 +34,7 @@ extension Session.Window {
     ///     - Both systems represent a window's position relative to the screen or parent container, starting from the top-left corner.
     public var frame: CGRect {
         get async throws {
-            try await self.becomeFirstResponder()
+            try await self.becomeFirstResponder(context: .unavailable)
             
             let (data, _) = try await self.session.data(.get, "session/\(self.session.id)/window/rect", data: nil, context: .unavailable, origin: .window(self), invoker: #function)
             let parser = try JSONParser(data: data).decode(JSONParser.self, forKey: "value")

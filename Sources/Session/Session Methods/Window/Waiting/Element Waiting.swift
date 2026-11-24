@@ -54,7 +54,8 @@ extension Session.Window {
         let proxy = Element.LocatorProxy()
         let query = predicate(proxy)
         
-        while clock.now < deadline {
+        // `repeat`, so that the element is looked for at least once, even for a zero timeout.
+        repeat {
             do {
                 let element = try await self.findElement(where: predicate, fileID: fileID, line: line, function: function)
                 switch condition {
@@ -74,7 +75,7 @@ extension Session.Window {
             } catch {
                 throw error
             }
-        }
+        } while clock.now < deadline
         
         let snapshot = await self.timeoutDetails
 

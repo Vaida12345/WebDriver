@@ -33,7 +33,8 @@ extension Session.Window {
             try await clock.sleep(for: sleepDuration)
         }
         
-        while clock.now < deadline {
+        // `repeat`, so that the condition is checked at least once, even for a zero timeout.
+        repeat {
             switch condition {
             case .documentReady:
                 guard try await self.readyState == .complete else {
@@ -42,7 +43,7 @@ extension Session.Window {
                 }
                 return
             }
-        }
+        } while clock.now < deadline
         
         throw WaitingTimeout(duration: timeout, query: nil, details: await self.timeoutDetails)
     }

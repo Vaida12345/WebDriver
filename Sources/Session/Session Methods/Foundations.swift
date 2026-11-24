@@ -14,6 +14,8 @@ extension Session {
     /// Close the connection.
     ///
     /// Deletes the session, which closes the browser, then stops the driver this session launched. The driver is stopped even if deleting the session fails.
+    ///
+    /// The session can no longer be used afterward, as its connection is invalidated. A session dropped without calling this keeps its connection, and its driver until the launcher is released.
     public func close(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
         do {
             let _ = try await self.data(.delete, "session/\(id)", data: nil,
@@ -21,9 +23,11 @@ extension Session {
                                         origin: .session(self),
                                         invoker: #function)
         } catch {
+            self.session.finishTasksAndInvalidate()
             await self.launcher.stop()
             throw error
         }
+        self.session.finishTasksAndInvalidate()
         await self.launcher.stop()
     }
     

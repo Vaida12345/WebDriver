@@ -22,10 +22,10 @@ extension Session.Window {
     ///   - orientation: The page orientation.
     ///   - scale: The scaling factor for page rendering ( valid range: `0.1` to `2.0`).
     ///   - includesBackground: Whether to include background graphics in the PDF.
-    ///   - width: The paper width in inches.
-    ///   - height: The paper height in inches.
+    ///   - width: The paper width in centimeters, as WebDriver uses. The default is US Letter.
+    ///   - height: The paper height in centimeters, as WebDriver uses. The default is US Letter.
     ///   - scaleToFit: Whether to shrink content to fit within the page dimensions.
-    ///   - margin: The margins for the PDF.
+    ///   - margin: The margins for the PDF, in centimeters.
     ///
     /// - Returns: A `PDFDocument` representing the printed page.
     ///
@@ -75,6 +75,7 @@ extension Session.Window {
         case portrait
     }
     
+    /// The margins of a rendered page, in centimeters.
     public struct Margin {
         public let top: Double
         public let bottom: Double
