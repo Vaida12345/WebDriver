@@ -37,6 +37,13 @@ public struct WebDriverError: GenericError, @unchecked Sendable {
     /// The element that caused the error.
     public let origin: Origin
     
+    /// A short HTML summary of the ``origin`` element, captured when the error occurred.
+    ///
+    /// This is `nil` if the origin is not an element, or if the element could no longer be read, for example because it is stale.
+    ///
+    /// - SeeAlso: ``Session/Window-swift.struct/Element/summary``
+    public let elementSummary: String?
+    
     /// The method or function that invoked the operation resulting in this error.
     ///
     /// This identifies where the error originated from within the call chain. The *caller* is defined as the first public API.
@@ -49,7 +56,7 @@ public struct WebDriverError: GenericError, @unchecked Sendable {
     }
     
     
-    init(parser: JSONParser, response: HTTPURLResponse, context: SwiftContext, origin: Origin, invoker: StaticString) throws {
+    init(parser: JSONParser, response: HTTPURLResponse, context: SwiftContext, origin: Origin, elementSummary: String? = nil, invoker: StaticString) throws {
         self.statusCode = response.statusCode
         self.code = try ErrorCode(rawValue: parser.decode(String.self, forKey: "error"))
         self.message = try parser.decode(String.self, forKey: "message")
@@ -58,10 +65,11 @@ public struct WebDriverError: GenericError, @unchecked Sendable {
         
         self.context = context
         self.origin = origin
+        self.elementSummary = elementSummary
         self.invoker = invoker
     }
     
-    internal init(code: WebDriverError.ErrorCode, statusCode: Int, message: String, stackTrace: String? = nil, data: JSONParser? = nil, context: SwiftContext, origin: WebDriverError.Origin, invoker: StaticString) {
+    internal init(code: WebDriverError.ErrorCode, statusCode: Int, message: String, stackTrace: String? = nil, data: JSONParser? = nil, context: SwiftContext, origin: WebDriverError.Origin, elementSummary: String? = nil, invoker: StaticString) {
         self.code = code
         self.statusCode = statusCode
         self.message = message
@@ -69,6 +77,7 @@ public struct WebDriverError: GenericError, @unchecked Sendable {
         self.data = data
         self.context = context
         self.origin = origin
+        self.elementSummary = elementSummary
         self.invoker = invoker
     }
     
@@ -119,6 +128,9 @@ extension WebDriverError: CustomStringConvertible, DetailedStringConvertible {
             descriptor.raw("message: \(self.message)")
             descriptor.value(for: \.context)
             descriptor.value(for: \.origin)
+            if let elementSummary {
+                descriptor.raw("element: \(elementSummary)")
+            }
             descriptor.value(for: \.invoker)
         }
     }

@@ -124,7 +124,8 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
         case 400, 404, 405, 500:
             do {
                 let parser = try JSONParser(data: data).decode(JSONParser.self, forKey: "value")
-                throw try WebDriverError(parser: parser, response: response, context: context, origin: origin, invoker: invoker)
+                let elementSummary: String? = if case .element(let element) = origin { await element.summaryIfAvailable } else { nil }
+                throw try WebDriverError(parser: parser, response: response, context: context, origin: origin, elementSummary: elementSummary, invoker: invoker)
             } catch let error as WebDriverError {
                 throw error
             } catch {

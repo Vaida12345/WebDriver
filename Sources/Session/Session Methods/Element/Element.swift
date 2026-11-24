@@ -34,6 +34,7 @@ extension Session.Window {
     /// - ``text``
     /// - ``label``
     /// - ``frame``
+    /// - ``summary``
     /// - ``load(_:at:)-43sms``
     ///
     /// ### Interaction
