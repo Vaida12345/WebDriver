@@ -18,6 +18,7 @@ extension Session.Window.Element {
     ///
     /// ### Primary Locators
     /// - ``AttributeLocator``
+    /// - ``ClassListLocator``
     /// - ``LinkTextLocator``
     /// - ``TagLocator``
     /// - ``XPathLocator``

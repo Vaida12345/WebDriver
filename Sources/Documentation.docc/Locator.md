@@ -16,11 +16,14 @@ It supports all common attributes, including
 - tag
 - id
 - title
-- text
+- `aria-label` (`ariaLabel`) and `role`
+- any attribute, using `attribute(_:)`, such as `$0.attribute("data-testid")`
+- text: `text` (own text only), `textContent` (including descendants), and `normalizedTextContent` (including descendants, with whitespace collapsed)
+- `classes`, for matching whole class names
 - ...
 
 functions including
-- `contains`
+- `contains`, optionally case-insensitive using `contains(_:caseInsensitive:)`
 - `hasPrefix`
 - `hasSuffix`
 - `==`

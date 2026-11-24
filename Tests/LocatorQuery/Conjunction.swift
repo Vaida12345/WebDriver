@@ -57,5 +57,21 @@ struct ConjunectionLocator {
         
         #expect(query == Query(locator: .xpath, value: "//p[text()=\"Google\" and @class=\"lst\"]"))
     }
-    
+
+    @Test func normalizedTextContentANDTagname() async throws {
+        let query = query {
+            $0.normalizedTextContent == "foo" && $0.tag == "bar"
+        }
+
+        #expect(query == Query(locator: .xpath, value: "//bar[normalize-space(.)=\"foo\"]"))
+    }
+
+    @Test func classesContainsANDTag() async throws {
+        let query = query {
+            $0.tag == "button" && $0.classes.contains("btn") && $0.classes.contains("large")
+        }
+
+        #expect(query == Query(locator: .css, value: "button[class~=\"btn\"][class~=\"large\"]"))
+    }
+
 }

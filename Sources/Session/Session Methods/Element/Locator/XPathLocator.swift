@@ -13,8 +13,13 @@ extension Session.Window.Element {
         let attribute: XPathQuery.Attribute
         
         
-        public func contains(_ string: String) -> any LocatorQuery {
-            XPathQuery(operation: .contains, attribute: self.attribute, value: string)
+        /// Matches elements whose value contains `string` as a substring.
+        ///
+        /// - Parameters:
+        ///   - string: The substring to search for.
+        ///   - caseInsensitive: Whether to ignore case. Only ASCII letters are folded, as XPath 1.0 has no `lower-case()`.
+        public func contains(_ string: String, caseInsensitive: Bool = false) -> any LocatorQuery {
+            XPathQuery(operation: .contains, attribute: self.attribute, value: string, caseInsensitive: caseInsensitive)
         }
         
         public func hasPrefix(_ string: String) -> any LocatorQuery {
