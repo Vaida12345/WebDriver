@@ -14,6 +14,8 @@ let driver = WebDriver.Firefox()
 
 Safari works the same way with `WebDriver.Safari()`. Its driver comes with macOS, but you need to allow remote automation once, with `safaridriver --enable` or Safari's Develop menu.
 
+Chrome works the same way with `WebDriver.Chrome()`, for example `WebDriver.Chrome().headless()`. Install its driver with `brew install --cask chromedriver`, or from Chrome for Testing. `chromedriver` only drives the Chrome with the same major version, so keep the two in step.
+
 Launch the driver and create a new session. All interactions with the driver will be conducted through this session.
 
 ```swift
@@ -132,7 +134,10 @@ GECKO_INTEGRATION=1 swift test --filter "Gecko Integration"
 ```bash
 SAFARI_INTEGRATION=1 swift test --filter "Safari Integration"
 ```
-The Gecko tests need `geckodriver` and Firefox installed. The Safari tests need remote automation allowed once, with `safaridriver --enable`.
+```bash
+CHROME_INTEGRATION=1 swift test --filter "Chrome Integration"
+```
+The Gecko tests need `geckodriver` and Firefox installed. The Safari tests need remote automation allowed once, with `safaridriver --enable`. The Chrome tests need `chromedriver` with the same major version as Chrome, and run Chrome headless.
 
 
 ## Getting Started

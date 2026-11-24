@@ -131,12 +131,57 @@ struct LauncherTests {
         #expect(!driver.flags.contains(.copyProfileOnLaunch))
     }
 
+    /// A launcher whose session fails to start is stopped before the error is rethrown, so that its cleanup, such as deleting a copied profile, has run.
+    @MainActor
+    @Test
+    func failedSessionStopsTheLauncher() async throws {
+        let browser = try await MockBrowser(html: "<html><body></body></html>")
+        browser.sessionCreationError = "This version of ChromeDriver only supports Chrome version 158"
+        let launcher = RecordingLauncher(driver: try WebDriver.Chrome(), host: browser.id)
+        
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [MockWebDriverProtocol.self]
+        let error = await #expect(throws: WebDriverError.self) {
+            try await launcher.startSession(context: .unavailable, invoker: #function, urlSessionConfiguration: configuration)
+        }
+        #expect(error?.code == .session_not_created)
+        #expect(error?.message.contains("only supports Chrome version 158") == true)
+        #expect(launcher.stopCount == 1)
+    }
+
     @Test
     func baseURL() {
         #expect(makeBaseURL(host: "127.0.0.1", port: 4444)?.absoluteString == "http://127.0.0.1:4444")
         #expect(makeBaseURL(host: "127.0.0.1", port: 4444)?.appending(path: "status").absoluteString == "http://127.0.0.1:4444/status")
     }
 
+}
+
+
+/// A launcher for a server that is already running, which records calls to ``stop()``.
+private final class RecordingLauncher<Driver: WebDriverProtocol>: WebDriverLauncher {
+    
+    let driver: Driver
+    
+    let host: String
+    
+    let port: UInt16 = 4444
+    
+    private let stops = OSAllocatedUnfairLock(initialState: 0)
+    
+    var stopCount: Int { stops.withLock { $0 } }
+    
+    init(driver: Driver, host: String) {
+        self.driver = driver
+        self.host = host
+    }
+    
+    func attach(sessionID: String) {}
+    
+    func stop() async {
+        stops.withLock { $0 += 1 }
+    }
+    
 }
 
 

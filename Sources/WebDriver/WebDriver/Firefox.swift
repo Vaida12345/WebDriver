@@ -33,10 +33,9 @@ extension WebDriver {
             var driver = self
             var temporaryProfile: String?
             if self.flags.contains(.copyProfileOnLaunch), let template = self.firefoxArg(after: "-profile") {
-                let copy = FinderItem.temporaryDirectory/"\(UUID()).tempprofile"
-                try FinderItem(at: template).copy(to: copy)
-                temporaryProfile = copy.path
-                driver = try driver.settingFirefoxArg("-profile", value: copy.path)
+                let copy = try makeTemporaryProfile(from: template)
+                temporaryProfile = copy
+                driver = try driver.settingFirefoxArg("-profile", value: copy)
             }
 
             let launcher = try await DriverProcessLauncher(
@@ -48,21 +47,12 @@ extension WebDriver {
                     ["--host", driverLoopback, "-p", port.description, "--websocket-port", generateRandomPort().description]
                 },
                 onExit: { [temporaryProfile] in
-                    Firefox.removeTemporaryProfile(at: temporaryProfile)
+                    removeTemporaryProfile(at: temporaryProfile)
                 }
             )
-            return try await Session(launcher: launcher, context: SwiftContext(fileID: fileID, line: line, function: function), invoker: #function, urlSessionConfiguration: urlSessionConfiguration)
+            return try await launcher.startSession(context: SwiftContext(fileID: fileID, line: line, function: function), invoker: #function, urlSessionConfiguration: urlSessionConfiguration)
         }
 
-        private static func removeTemporaryProfile(at path: String?) {
-            guard let path else { return }
-            do {
-                try FileManager.default.removeItem(atPath: path)
-            } catch {
-                Logger(subsystem: "WebDriver", category: "Firefox").fault("Failed to delete temporary profile at \(path): \(error)")
-            }
-        }
-        
         
         public init(capabilities: [String : Any], flags: WebDriverInitializationFlags) throws(InitializationError) {
             self.capabilities = capabilities

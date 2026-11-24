@@ -13,6 +13,11 @@ import Foundation
 /// - Note: In this package, `firstMatch` is ignored.
 ///
 /// ## Topics
+/// ### Drivers
+/// - ``Firefox``
+/// - ``Safari``
+/// - ``Chrome``
+///
 /// ### Parameters
 /// - ``PageLoadStrategy``
 public enum WebDriver {

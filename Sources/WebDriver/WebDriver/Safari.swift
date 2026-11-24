@@ -42,7 +42,7 @@ extension WebDriver {
                 executable: safariDriverPath,
                 arguments: { port in ["-p", port.description] }
             )
-            return try await Session(launcher: launcher, context: SwiftContext(fileID: fileID, line: line, function: function), invoker: #function, urlSessionConfiguration: urlSessionConfiguration)
+            return try await launcher.startSession(context: SwiftContext(fileID: fileID, line: line, function: function), invoker: #function, urlSessionConfiguration: urlSessionConfiguration)
         }
 
 

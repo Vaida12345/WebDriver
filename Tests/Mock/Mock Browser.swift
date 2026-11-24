@@ -59,6 +59,9 @@ final class MockBrowser {
     /// When set, Perform Actions responds with this error, to test that actions are released anyway.
     var actionsErrorOverride: String?
 
+    /// When set, New Session responds with `session not created` and this message, as chromedriver does for a Chrome of another version.
+    var sessionCreationError: String?
+
     /// The `text` of the last Element Send Keys request.
     private(set) var lastSentKeys: String?
 
@@ -84,9 +87,14 @@ final class MockBrowser {
 
     /// Starts a session that talks to `self`.
     func startSession(driver: WebDriver.Firefox? = nil) async throws -> Session {
+        try await self.startSession(reporting: try driver ?? WebDriver.Firefox())
+    }
+
+    /// Starts a session that talks to `self`, whose launcher reports `driver`, to test behavior that depends on the browser.
+    func startSession<Driver: WebDriverProtocol>(reporting driver: Driver) async throws -> Session {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [MockWebDriverProtocol.self]
-        let launcher = LinkedLauncher(driver: try driver ?? WebDriver.Firefox(), host: self.id, port: 4444)
+        let launcher = LinkedLauncher(driver: driver, host: self.id, port: 4444)
         return try await Session(launcher: launcher, context: .unavailable, invoker: #function, urlSessionConfiguration: configuration)
     }
 
@@ -97,6 +105,8 @@ final class MockBrowser {
         let find = ["using": body["using"] ?? "", "value": body["value"] ?? ""]
         
         switch (method, route.joined(separator: "/")) {
+        case ("POST", "session") where self.sessionCreationError != nil:
+            return Self.error(500, "session not created", self.sessionCreationError!)
         case ("POST", "session"):
             self.capabilities = (body["capabilities"] as? [String : Any])?["alwaysMatch"] as? [String : Any] ?? [:]
             return Self.ok(["sessionId": "session"])
@@ -104,6 +114,12 @@ final class MockBrowser {
             return Self.ok(self.screenshotOverride ?? Self.png(size: Self.viewportScreenshotSize))
         case ("GET", "session/moz/screenshot/full"):
             return Self.ok(self.screenshotOverride ?? Self.png(size: Self.fullPageScreenshotSize))
+        case ("POST", "session/goog/cdp/execute"):
+            let parameters = body["params"] as? [String : Any]
+            guard body["cmd"] as? String == "Page.captureScreenshot", parameters?["captureBeyondViewport"] as? Bool == true else {
+                return Self.error(400, "invalid argument", "MockBrowser only implements full-page Page.captureScreenshot")
+            }
+            return Self.ok(["data": self.screenshotOverride ?? Self.png(size: Self.fullPageScreenshotSize)])
         case ("DELETE", "session"):
             Self.browsers[self.id] = nil
             return Self.ok(NSNull())

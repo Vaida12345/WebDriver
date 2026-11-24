@@ -33,6 +33,18 @@ extension WebDriverLauncher {
     var baseURL: URL {
         makeBaseURL(host: self.host, port: self.port)!
     }
+    
+    /// Creates a session on the server, stopping the server if that fails.
+    ///
+    /// Stopping waits for the browser to exit and runs the launcher's cleanup, such as deleting a copied profile, before the error is rethrown. Otherwise, the cleanup would only run when the launcher is released, in a task that may not finish before the program exits.
+    func startSession(context: SwiftContext, invoker: StaticString, urlSessionConfiguration: URLSessionConfiguration) async throws -> Session {
+        do {
+            return try await Session(launcher: self, context: context, invoker: invoker, urlSessionConfiguration: urlSessionConfiguration)
+        } catch {
+            await self.stop()
+            throw error
+        }
+    }
 }
 
 

@@ -9,13 +9,13 @@
 extension Session.Window.Element {
     
     /// The query formed by locator, used for transmitting the query to backend.
-    public struct Query: Equatable {
+    public struct Query: Equatable, Sendable {
         
         let locator: Locator
         
         let value: String
         
-        enum Locator: String, CustomStringConvertible, Equatable {
+        enum Locator: String, CustomStringConvertible, Equatable, Sendable {
             case css = "css selector"
             case linkText = "link text"
             case partialLinkText = "partial link text"

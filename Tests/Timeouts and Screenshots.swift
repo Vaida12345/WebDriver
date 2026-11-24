@@ -90,6 +90,16 @@ struct ScreenshotTests {
     }
 
     @Test
+    func fullPageScreenshotUsesChromeDevTools() async throws {
+        let browser = try await MockBrowser(html: Self.html)
+        let window = try await browser.startSession(reporting: try WebDriver.Chrome()).window
+        let image = try await window.screenshot(fullPage: true)
+        let size = try #require(image.representations.first)
+        #expect(size.pixelsWide == MockBrowser.fullPageScreenshotSize.width)
+        #expect(size.pixelsHigh == MockBrowser.fullPageScreenshotSize.height)
+    }
+
+    @Test
     func undecodableScreenshotThrows() async throws {
         let browser = try await MockBrowser(html: Self.html)
         let window = try await browser.startSession().window
