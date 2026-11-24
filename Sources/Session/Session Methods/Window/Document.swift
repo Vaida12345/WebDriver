@@ -46,23 +46,5 @@ extension Session.Window {
         )
         return try JSONParser(data: data)
     }
-    
-    /// Takes a screenshot of the current browser window.
-    ///
-    /// This endpoint captures the entire viewport as a base64-encoded PNG image.
-    ///
-    /// > First Responder:
-    /// > The first responder is switched to `self`.
-    public func screenshot(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> sending NativeImage {
-        try await self.becomeFirstResponder(fileID: fileID, line: line, function: function)
-        
-        let (result, _) = try await self.session.data(.get, "session/\(self.session.id)/screenshot", data: nil,
-                                                      context: SwiftContext(fileID: fileID, line: line, function: function),
-                                                      origin: .window(self),
-                                                      invoker: #function)
-        let base64 = try JSONParser(data: result).decode(String.self, forKey: "value")
-        let data = Data(base64Encoded: base64)!
-        return NativeImage(data: data)!
-    }
-    
+
 }

@@ -64,9 +64,9 @@ extension Session.Window {
             origin: .window(self),
             invoker: #function
         )
-        let base64 = try JSONParser(data: result).decode(String.self, forKey: "value")
-        let data = Data(base64Encoded: base64)!
-        return PDFDocument(data: data)!
+        let data = try decodeBase64(from: JSONParser(data: result), expected: "a PDF document")
+        guard let document = PDFDocument(data: data) else { throw Session.SessionError.undecodableContent(expected: "a PDF document") }
+        return document
     }
     
     

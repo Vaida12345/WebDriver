@@ -16,8 +16,10 @@ extension Session {
         case connectionLost
         case badResponse(code: Int, message: String?)
         case invalidURL(String)
-        
-        
+        /// The response could not be decoded as the expected content, such as a PNG image.
+        case undecodableContent(expected: String)
+
+
         public var title: String? {
             switch self {
             case .initialConnectionFailed:
@@ -28,6 +30,8 @@ extension Session {
                 "Bad Response (Code \(code))"
             case .invalidURL:
                 "Invalid URL"
+            case .undecodableContent:
+                "Undecodable Content"
             }
         }
         
@@ -41,6 +45,8 @@ extension Session {
                 message ?? "(not decodable as String)"
             case .invalidURL(let string):
                 "\"\(string)\" is not a valid URL"
+            case .undecodableContent(let expected):
+                "The server's response could not be decoded as \(expected)."
             }
         }
         

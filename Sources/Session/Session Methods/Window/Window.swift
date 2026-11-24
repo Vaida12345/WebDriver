@@ -35,7 +35,7 @@ extension Session {
     /// - ``diagnosticSnapshot``
     /// - ``execute(_:async:)``
     /// - ``execute(_:args:async:)``
-    /// - ``screenshot()``
+    /// - ``screenshot(fullPage:fileID:line:function:)``
     /// - ``render(orientation:scale:includesBackground:width:height:scaleToFit:margin:)``
     ///
     /// ### Element

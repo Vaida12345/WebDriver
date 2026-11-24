@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AppKit
 import WebKit
 @testable
 import WebDriver
@@ -15,7 +16,7 @@ import WebDriver
 ///
 /// Requests made by a ``startSession()`` session are intercepted by ``MockWebDriverProtocol`` and evaluated against the web view's DOM, so tests exercise the real HTTP and script paths without launching a browser.
 ///
-/// Only the endpoints needed by the tests are implemented: creating and deleting the session, getting and switching the window, finding elements, and executing scripts. Other endpoints respond with `unknown command`.
+/// Only the endpoints needed by the tests are implemented: creating and deleting the session, getting and switching the window, finding elements, executing scripts, and taking screenshots. Other endpoints respond with `unknown command`.
 @MainActor
 final class MockBrowser {
 
@@ -27,6 +28,18 @@ final class MockBrowser {
     let webView = WKWebView()
 
     private let navigation = NavigationWaiter()
+
+    /// The `alwaysMatch` capabilities of the last new-session request.
+    private(set) var capabilities: [String : Any] = [:]
+
+    /// Replaces the base64 value returned by the screenshot endpoints, to test undecodable responses.
+    var screenshotOverride: String?
+
+    /// The size of the image returned by the viewport screenshot endpoint.
+    static let viewportScreenshotSize = (width: 4, height: 3)
+
+    /// The size of the image returned by the full-page screenshot endpoint.
+    static let fullPageScreenshotSize = (width: 4, height: 10)
 
 
     init(html: String) async throws {
@@ -43,10 +56,10 @@ final class MockBrowser {
     }
 
     /// Starts a session that talks to `self`.
-    func startSession() async throws -> Session {
+    func startSession(driver: WebDriver.Firefox? = nil) async throws -> Session {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [MockWebDriverProtocol.self]
-        let launcher = LinkedLauncher(driver: try WebDriver.Firefox(), host: self.id, port: 4444)
+        let launcher = LinkedLauncher(driver: try driver ?? WebDriver.Firefox(), host: self.id, port: 4444)
         return try await Session(launcher: launcher, context: .unavailable, invoker: #function, urlSessionConfiguration: configuration)
     }
 
@@ -58,7 +71,12 @@ final class MockBrowser {
         
         switch (method, route.joined(separator: "/")) {
         case ("POST", "session"):
+            self.capabilities = (body["capabilities"] as? [String : Any])?["alwaysMatch"] as? [String : Any] ?? [:]
             return Self.ok(["sessionId": "session"])
+        case ("GET", "session/screenshot"):
+            return Self.ok(self.screenshotOverride ?? Self.png(size: Self.viewportScreenshotSize))
+        case ("GET", "session/moz/screenshot/full"):
+            return Self.ok(self.screenshotOverride ?? Self.png(size: Self.fullPageScreenshotSize))
         case ("DELETE", "session"):
             Self.browsers[self.id] = nil
             return Self.ok(NSNull())
@@ -94,6 +112,12 @@ final class MockBrowser {
         } catch {
             return Self.error(500, "javascript error", "\(error)")
         }
+    }
+
+    /// Returns a base64-encoded PNG image of the given size.
+    private static func png(size: (width: Int, height: Int)) -> String {
+        let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size.width, pixelsHigh: size.height, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
+        return bitmap.representation(using: .png, properties: [:])!.base64EncodedString()
     }
 
     private static func ok(_ value: Any) -> (Int, Data) {

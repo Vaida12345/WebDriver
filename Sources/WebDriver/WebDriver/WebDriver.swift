@@ -58,7 +58,7 @@ public struct WebDriverInitializationFlags: OptionSet, Sendable {
 
 public extension WebDriverProtocol {
     
-    internal func appendingCapability(key: String, value: String) throws(WebDriver.InitializationError) -> Self {
+    internal func appendingCapability(key: String, value: Any) throws(WebDriver.InitializationError) -> Self {
         try Self(capabilities: self.capabilities.merging([key : value], uniquingKeysWith: { $1 }), flags: self.flags)
     }
     
@@ -84,6 +84,15 @@ public extension WebDriverProtocol {
         try self.appendingCapability(key: "pageLoadStrategy", value: strategy.rawValue)
     }
     
+    /// Sets the session's timeouts when it is created, so they apply from the first command on.
+    ///
+    /// Timeouts left `nil` keep the server's defaults. To change them later, use ``Session/set(timeout:fileID:line:function:)``.
+    ///
+    /// - Throws: ``Session/Timeout/InvalidValue`` when a timeout is negative.
+    func timeouts(_ timeout: Session.Timeout) throws -> Self {
+        try self.appendingCapability(key: "timeouts", value: timeout.encode())
+    }
+
     /// Links an existing session.
     ///
     /// - important: `url` must not contain a schema, otherwise `InitializationError`.

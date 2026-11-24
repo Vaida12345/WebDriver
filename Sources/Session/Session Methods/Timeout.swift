@@ -18,21 +18,27 @@ extension Session {
         ///
         /// This is particularly useful when you execute scripts using WebDriver's `execute_script` method. If the script takes longer than the set timeout, the WebDriver throws a "script timeout" error (`script timeout`).
         ///
-        /// - Important: Must be positive.
+        /// `nil` leaves the timeout unchanged. Zero means the operation times out immediately.
+        ///
+        /// - Important: Must not be negative.
         public var script: Duration?
         
         /// The maximum time WebDriver will wait for a page load to complete before throwing a "timeout" error.
         ///
         /// This is crucial during navigation activities (like clicking a link where the destination page takes a long time to fully load). If the navigation takes longer than this timeout, WebDriver will terminate the operation and return a `timeout` error.
         ///
-        /// - Important: Must be positive.
+        /// `nil` leaves the timeout unchanged. Zero means the operation times out immediately.
+        ///
+        /// - Important: Must not be negative.
         public var pageLoad: Duration?
         
         /// The maximum time that WebDriver should wait when searching for elements.
         ///
         /// If an element is not immediately visible or available, WebDriver will keep retrying the find operation for the duration specified by the implicit timeout. After exceeding this time, if the element is still not found, only then it will throw a `no such element` error.
         ///
-        /// - Important: Must be positive.
+        /// `nil` leaves the timeout unchanged. Zero means the operation times out immediately.
+        ///
+        /// - Important: Must not be negative.
         public var implicit: Duration?
         
         
@@ -61,35 +67,28 @@ extension Session {
             stream.write(")")
         }
         
-        public func encode() -> [String : Any] {
+        /// Encodes the timeouts that are set, in milliseconds, as WebDriver expects them.
+        ///
+        /// - Throws: ``InvalidValue`` when a timeout is negative.
+        public func encode() throws(InvalidValue) -> [String : Any] {
             var results: [String : Any] = [:]
-            if let script {
-                precondition(script.seconds >= 0)
-                results["script"] = Int(script.seconds * 1e3)
-            }
-            if let pageLoad {
-                precondition(pageLoad.seconds >= 0)
-                results["pageLoad"] = Int(pageLoad.seconds * 1e3)
-            }
-            if let implicit {
-                precondition(implicit.seconds >= 0)
-                results["implicit"] = Int(implicit.seconds * 1e3)
+            for (name, duration) in [("script", self.script), ("pageLoad", self.pageLoad), ("implicit", self.implicit)] {
+                guard let duration else { continue }
+                guard duration >= .zero else { throw InvalidValue(name: name, duration: duration) }
+                results[name] = Int((duration / .milliseconds(1)).rounded())
             }
             return results
         }
-        
-        
+
+
+        /// Decodes the timeouts reported by the server.
+        ///
+        /// A `null` script timeout, which means no limit, is decoded as `nil`.
         init(parser: JSONParser) throws {
             let value = try parser.decode(JSONParser.self, forKey: "value")
-            
-            let script = try value.decode(Double.self, forKey: "script")
-            self.script = script == 0 ? nil : .milliseconds(script)
-            
-            let pageLoad = try value.decode(Double.self, forKey: "pageLoad")
-            self.pageLoad = pageLoad == 0 ? nil : .milliseconds(pageLoad)
-            
-            let implicit = try value.decode(Double.self, forKey: "implicit")
-            self.implicit = implicit == 0 ? nil : .milliseconds(implicit)
+            self.script = try value.decodeIfPresent(Double.self, forKey: "script").map { .milliseconds($0) }
+            self.pageLoad = try value.decodeIfPresent(Double.self, forKey: "pageLoad").map { .milliseconds($0) }
+            self.implicit = try value.decodeIfPresent(Double.self, forKey: "implicit").map { .milliseconds($0) }
         }
         
         public init(script: Duration? = nil, pageLoad: Duration? = nil, implicit: Duration? = nil) {
@@ -97,7 +96,21 @@ extension Session {
             self.pageLoad = pageLoad
             self.implicit = implicit
         }
-        
+
+
+        /// A timeout that cannot be sent, as it is negative.
+        public struct InvalidValue: GenericError {
+
+            /// The name of the timeout, such as `pageLoad`.
+            public let name: String
+
+            public let duration: Duration
+
+            public var message: String {
+                "The \(self.name) timeout must not be negative, but is \(self.duration)."
+            }
+        }
+
     }
 }
 
