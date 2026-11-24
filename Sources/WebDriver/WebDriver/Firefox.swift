@@ -33,9 +33,14 @@ extension WebDriver {
             var driver = self
             var temporaryProfile: String?
             if self.flags.contains(.copyProfileOnLaunch), let template = self.firefoxArg(after: "-profile") {
-                let copy = try makeTemporaryProfile(from: template)
+                let copy = try await copyTemporaryProfile(from: template)
+                do {
+                    driver = try driver.settingFirefoxArg("-profile", value: copy)
+                } catch {
+                    removeTemporaryProfile(at: copy)
+                    throw error
+                }
                 temporaryProfile = copy
-                driver = try driver.settingFirefoxArg("-profile", value: copy)
             }
 
             let launcher = try await DriverProcessLauncher(

@@ -38,9 +38,14 @@ extension WebDriver {
             var driver = self
             var temporaryProfile: String?
             if self.flags.contains(.copyProfileOnLaunch), let template = self.chromeArg(prefix: "--user-data-dir") {
-                let copy = try makeTemporaryProfile(from: template)
+                let copy = try await copyTemporaryProfile(from: template)
+                do {
+                    driver = try driver.settingChromeArg(prefix: "--user-data-dir", value: copy)
+                } catch {
+                    removeTemporaryProfile(at: copy)
+                    throw error
+                }
                 temporaryProfile = copy
-                driver = try driver.settingChromeArg(prefix: "--user-data-dir", value: copy)
             }
 
             // chromedriver only accepts local connections by default.

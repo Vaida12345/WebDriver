@@ -103,18 +103,17 @@ final class ProcessOutput: Sendable {
         return await withCheckedContinuation { continuation in
             let hasHappened = self.state.withLock { state in
                 guard !state.hasHappened(event) else { return true }
-                state.waiters[id] = Waiter(event: event, continuation: continuation)
+                // Created while holding the lock, so that it cannot fire before the waiter is registered.
+                let timer = Task {
+                    do { try await Task.sleep(for: timeout) } catch { return }
+                    let waiter = self.state.withLock { $0.waiters.removeValue(forKey: id) }
+                    waiter?.continuation.resume(returning: false)
+                }
+                state.waiters[id] = Waiter(event: event, continuation: continuation, timer: timer)
                 return false
             }
-            guard !hasHappened else {
+            if hasHappened {
                 continuation.resume(returning: true)
-                return
-            }
-
-            Task {
-                try? await Task.sleep(for: timeout)
-                let waiter = self.state.withLock { $0.waiters.removeValue(forKey: id) }
-                waiter?.continuation.resume(returning: false)
             }
         }
     }
@@ -127,7 +126,7 @@ final class ProcessOutput: Sendable {
             return (state.exitHandlers, state.removeWaiters(for: .exit))
         }
         handlers.forEach { $0() }
-        waiters.forEach { $0.continuation.resume(returning: true) }
+        waiters.forEach { $0.resume() }
     }
 
     private func recordEndOfOutput() {
@@ -135,13 +134,21 @@ final class ProcessOutput: Sendable {
             state.isEndOfOutput = true
             return state.removeWaiters(for: .endOfOutput)
         }
-        waiters.forEach { $0.continuation.resume(returning: true) }
+        waiters.forEach { $0.resume() }
     }
 
 
     private struct Waiter: Sendable {
         let event: Event
         let continuation: CheckedContinuation<Bool, Never>
+        /// Resumes the waiter with `false` once the timeout passes.
+        let timer: Task<Void, Never>
+
+        /// Resumes the waiter because its event happened, and cancels the timer.
+        func resume() {
+            self.timer.cancel()
+            self.continuation.resume(returning: true)
+        }
     }
 
     private struct State: Sendable {

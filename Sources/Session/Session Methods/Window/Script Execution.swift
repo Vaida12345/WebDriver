@@ -16,7 +16,7 @@ extension Session.Window {
 
     /// A script whose interpolated values are passed as script arguments.
     ///
-    /// Strings, numbers, booleans, and elements become `arguments[n]`, so `"return \(text)"` is safe whatever `text` contains. Use `\(raw:)` to insert code verbatim.
+    /// Strings, numbers, booleans, and elements become `arguments[n]`, so `"return \(text)"` is safe whatever `text` contains. Use `\(raw:)` to insert code verbatim, or any other value, such as a `URL`, which has no interpolation of its own.
     public struct ScriptExecutionInterpolation:StringInterpolationProtocol, ExpressibleByStringInterpolation, ExpressibleByExtendedGraphemeClusterLiteral {
         
         var command: String
@@ -54,13 +54,28 @@ extension Session.Window {
         }
 
         /// Passes `value` as a script argument.
+        ///
+        /// A value outside the range of `Int` is passed as a `Double`, so it may lose precision.
         public mutating func appendInterpolation(_ value: some BinaryInteger) {
-            self.appendArgument(Int(value))
+            if let integer = Int(exactly: value) {
+                self.appendArgument(integer)
+            } else {
+                self.appendArgument(Double(value))
+            }
         }
 
         /// Passes `value` as a script argument.
+        ///
+        /// `NaN` and infinities cannot be sent as JSON, so they are inserted as the JavaScript `NaN` and `Infinity`.
         public mutating func appendInterpolation(_ value: some BinaryFloatingPoint) {
-            self.appendArgument(Double(value))
+            let double = Double(value)
+            if double.isNaN {
+                self.command.append("NaN")
+            } else if double.isInfinite {
+                self.command.append(double < 0 ? "-Infinity" : "Infinity")
+            } else {
+                self.appendArgument(double)
+            }
         }
 
         /// Passes `element` as a script argument, which the script receives as the DOM element.

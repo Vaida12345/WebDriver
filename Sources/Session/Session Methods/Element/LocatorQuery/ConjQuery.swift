@@ -62,6 +62,8 @@ struct ConjunctionQuery: LocatorQuery {
         let descriptions = body.map(\.xpathPredicate)
 
         if let tag = tag?.value {
+            // An empty predicate, `[]`, is not valid XPath.
+            guard !descriptions.isEmpty else { return "//\(tag)" }
             return "//\(tag)[" + descriptions.joined(separator: " and ") + "]"
         } else {
             return "(" + descriptions.joined(separator: " and ") + ")"

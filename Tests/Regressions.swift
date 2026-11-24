@@ -173,8 +173,25 @@ struct RegressionTests {
         #expect(try await window.execute("return \(raw: "1 + 1") + \(3)").decode(Int.self, forKey: "value") == 5)
     }
 
+    @Test func interpolatedExtremeNumbersDoNotTrap() {
+        let huge: Session.Window.ScriptExecutionInterpolation = "return \(UInt64.max)"
+        #expect(huge.args.count == 1)
+        let nan: Session.Window.ScriptExecutionInterpolation = "return \(Double.nan)"
+        #expect(nan.command == "return NaN" && nan.args.isEmpty)
+        let infinity: Session.Window.ScriptExecutionInterpolation = "return \(-Double.infinity)"
+        #expect(infinity.command == "return -Infinity" && infinity.args.isEmpty)
+    }
+
+    // MARK: - Tag-only conjunctions
+
+    @Test func tagOnlyConjunctionHasNoEmptyPredicate() {
+        let query = ConjunctionQuery(body: [TagQuery(value: "a"), TagQuery(value: "a")])
+        #expect(query.description == "//a")
+        #expect(RelativeQuery(relation: .descendant, body: query).xpathPredicate == "descendant::a")
+    }
+
     // MARK: - Waiting conditions
-    
+
     @Test func waitForVisibleElement() async throws {
         let browser = try await MockBrowser(html: Self.html)
         let window = try await browser.startSession().window

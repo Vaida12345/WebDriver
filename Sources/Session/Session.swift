@@ -138,7 +138,10 @@ public final class Session: Sendable, Identifiable, CustomStringConvertible {
         case 400...599:
             do {
                 let parser = try JSONParser(data: data).decode(JSONParser.self, forKey: "value")
-                let elementSummary: String? = if case .element(let element) = origin { await element.summaryIfAvailable } else { nil }
+                // Skipped when the element, its window, or the session is gone, as the summary could not be read.
+                let code = try? parser.decode(String.self, forKey: "error")
+                let isUnreadable = code.map { ["stale element reference", "no such window", "no such frame", "invalid session id"].contains($0) } ?? false
+                let elementSummary: String? = if case .element(let element) = origin, !isUnreadable { await element.summaryIfAvailable } else { nil }
                 throw try WebDriverError(parser: parser, response: response, context: context, origin: origin, elementSummary: elementSummary, invoker: invoker)
             } catch let error as WebDriverError {
                 throw error

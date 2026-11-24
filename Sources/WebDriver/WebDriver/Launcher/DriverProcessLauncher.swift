@@ -270,7 +270,8 @@ enum DriverProcess {
                 running.forEach { kill($0, SIGKILL) }
                 break
             }
-            try? await Task.sleep(for: .milliseconds(100))
+            // In an unstructured task, as a cancelled task would otherwise skip the sleep and spin until the deadline.
+            await Task { try? await Task.sleep(for: .milliseconds(100)) }.value
         }
     }
 

@@ -55,6 +55,8 @@ struct RelativeQuery: LocatorQuery {
             if let conjunction = body as? ConjunctionQuery {
                 let (tag, rest) = conjunction.splitTag()
                 if let tag {
+                    // An empty predicate, `[]`, is not valid XPath.
+                    guard !rest.isEmpty else { return "descendant::\(tag.value)" }
                     return "descendant::\(tag.value)[" + rest.map(\.xpathPredicate).joined(separator: " and ") + "]"
                 }
             }

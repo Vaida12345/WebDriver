@@ -19,6 +19,18 @@ func makeTemporaryProfile(from template: String) throws -> String {
     return copy.path
 }
 
+/// Copies the profile at `template` like ``makeTemporaryProfile(from:)``, off the cooperative thread pool, as a profile can be large.
+///
+/// If the task is cancelled meanwhile, the copy is deleted and `CancellationError` is thrown.
+func copyTemporaryProfile(from template: String) async throws -> String {
+    let copy = try await Task.detached { try makeTemporaryProfile(from: template) }.value
+    if Task.isCancelled {
+        removeTemporaryProfile(at: copy)
+        throw CancellationError()
+    }
+    return copy
+}
+
 /// Deletes a profile copied by ``makeTemporaryProfile(from:)``, logging a failure.
 func removeTemporaryProfile(at path: String?) {
     guard let path else { return }

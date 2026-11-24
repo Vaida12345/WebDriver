@@ -51,7 +51,9 @@ extension Session.Window.Element {
         get async {
             let session = self.window.session
             guard let body = try? JSONSerialization.data(withJSONObject: ["script": Self.summaryScript, "args": [self.reference]]) else { return nil }
-            let request = session.makeRequest(.post, "session/\(session.id)/execute/sync", data: body)
+            var request = session.makeRequest(.post, "session/\(session.id)/execute/sync", data: body)
+            // Short, as this delays the error it is attached to.
+            request.timeoutInterval = 2
             guard let (data, response) = try? await session.session.data(for: request),
                   (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
             return try? JSONParser(data: data).decode(String.self, forKey: "value")
