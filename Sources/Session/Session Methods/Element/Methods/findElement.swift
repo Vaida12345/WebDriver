@@ -20,12 +20,14 @@ extension Element {
     
     /// Find the element in the current element.
     ///
+    /// Only descendants of this element are searched. XPath queries are made relative to this element, see ``Session/Window/Element/Query/relativeToContextNode()``.
+    ///
     /// - Note: This method cannot be used to find elements inside a shadow content.
     public func findElement(where predicate: @Sendable (Session.Window.Element.LocatorProxy) -> Session.Window.Element.Query, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> Session.Window.Element {
         try await self.window.becomeFirstResponder(fileID: fileID, line: line, function: function)
-        
+
         let proxy = Element.LocatorProxy()
-        let query = predicate(proxy)
+        let query = predicate(proxy).relativeToContextNode()
         
         let (data, _) = try await self.window.session.data(
             .post,
@@ -83,12 +85,14 @@ extension Element {
     
     /// Find the elements in the current element.
     ///
+    /// Only descendants of this element are searched. XPath queries are made relative to this element, see ``Session/Window/Element/Query/relativeToContextNode()``.
+    ///
     /// - Note: This method cannot be used to find elements inside a shadow content.
     public func findElements(where predicate: @Sendable (Session.Window.Element.LocatorProxy) -> Session.Window.Element.Query, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> [Session.Window.Element] {
         try await self.window.becomeFirstResponder(fileID: fileID, line: line, function: function)
-        
+
         let proxy = Element.LocatorProxy()
-        let query = predicate(proxy)
+        let query = predicate(proxy).relativeToContextNode()
         
         let (data, _) = try await self.window.session.data(
             .post,

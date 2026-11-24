@@ -234,3 +234,44 @@ struct MatchingLocator {
     }
 
 }
+
+
+@Suite(.tags(.matching, .locator))
+struct ElementScopedQuery {
+
+    @Test func xpathBecomesRelative() async throws {
+        let query = query {
+            $0.text == "OK"
+        }.relativeToContextNode()
+
+        #expect(query == Query(locator: .xpath, value: ".//*[text()=\"OK\"]"))
+    }
+
+    @Test func unionBranchesBecomeRelative() async throws {
+        let query = query {
+            $0.tag == "p" || $0.text == "a | //b"
+        }.relativeToContextNode()
+
+        #expect(query == Query(locator: .xpath, value: ".//p | .//*[text()=\"a | //b\"]"))
+    }
+
+    @Test func nestedAbsolutePathIsKept() async throws {
+        let query = query {
+            $0.tag == "input" && $0.label == "Email"
+        }.relativeToContextNode()
+
+        #expect(query.value.hasPrefix(".//input[(@id = //label["))
+        #expect(!query.value.contains(".//label"))
+    }
+
+    @Test func otherStrategiesAreUnchanged() async throws {
+        let css = query { $0.id == "a" }
+        let tag = query { $0.tag == "p" }
+        let link = query { $0.hrefText == "Docs" }
+
+        #expect(css.relativeToContextNode() == css)
+        #expect(tag.relativeToContextNode() == tag)
+        #expect(link.relativeToContextNode() == link)
+    }
+
+}
