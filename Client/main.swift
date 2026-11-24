@@ -11,7 +11,7 @@ import FinderItem
 
 let url = URL(string: "https://www.google.com")!
 
-let driver = try await WebDriver.Firefox()
+let driver = try WebDriver.Firefox()
     .pageLoadStrategy(.eager)
     .profile(location: "/Users/vaida/Library/Application Support/Firefox/Profiles/2hzm7hvo.Default User")
     .new(tab: url)

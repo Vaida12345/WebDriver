@@ -46,7 +46,7 @@ final class MockBrowser {
     func startSession() async throws -> Session {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [MockWebDriverProtocol.self]
-        let launcher = LinkedLauncher(driver: try WebDriver.Firefox(), url: URL(string: self.id)!, port: 4444)
+        let launcher = LinkedLauncher(driver: try WebDriver.Firefox(), host: self.id, port: 4444)
         return try await Session(launcher: launcher, context: .unavailable, invoker: #function, urlSessionConfiguration: configuration)
     }
 

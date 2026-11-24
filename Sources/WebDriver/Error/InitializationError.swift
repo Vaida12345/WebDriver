@@ -15,7 +15,8 @@ extension WebDriver {
         case driverStartFailed
         case urlNotSupported
         case internalCapabilityCastError
-        case exceededMaxRetries(Int)
+        /// The driver failed to become ready after the given number of attempts. `output` holds the reason and the last lines of the driver's output.
+        case exceededMaxRetries(Int, output: String)
         
         public var message: String {
             switch self {
@@ -27,8 +28,8 @@ extension WebDriver {
                 "This URL is not supported."
             case .internalCapabilityCastError:
                 "Failed to cast the internal capability to the requested one."
-            case .exceededMaxRetries(let maxRetries):
-                "Failed to create a new web driver after \(maxRetries) retries."
+            case .exceededMaxRetries(let maxRetries, let output):
+                "Failed to start the web driver after \(maxRetries) attempts.\n\(output)"
             }
         }
     }

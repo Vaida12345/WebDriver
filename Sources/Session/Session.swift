@@ -83,6 +83,7 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
                                           context: context, origin: .session(self), invoker: invoker)
         let parser = try JSONParser(data: results.0)
         self.identity.id = try parser.decode(JSONParser.self, forKey: "value").decode(String.self, forKey: "sessionId")
+        launcher.attach(sessionID: self.identity.id)
     }
     
     

@@ -51,7 +51,8 @@ public struct WebDriverInitializationFlags: OptionSet, Sendable {
         self.rawValue = rawValue
     }
     
-    static let deleteProfileAfterUse = WebDriverInitializationFlags(rawValue: 1 << 0)
+    /// The launcher copies the profile given by `-profile` to a temporary location, and deletes the copy when the session ends.
+    static let copyProfileOnLaunch = WebDriverInitializationFlags(rawValue: 1 << 0)
 }
 
 
@@ -87,9 +88,10 @@ public extension WebDriverProtocol {
     ///
     /// - important: `url` must not contain a schema, otherwise `InitializationError`.
     func linkSession(url: URL = URL(string: "127.0.0.1")!, port: UInt16 = 4444, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> Session {
-        guard !url.absoluteString.contains("//") else { throw WebDriver.InitializationError.urlNotSupported }
+        let host = url.absoluteString
+        guard !host.contains("//"), makeBaseURL(host: host, port: port) != nil else { throw WebDriver.InitializationError.urlNotSupported }
         return try await Session(
-            launcher: LinkedLauncher(driver: self, url: url, port: port), context: SwiftContext(fileID: fileID, line: line, function: function),
+            launcher: LinkedLauncher(driver: self, host: host, port: port), context: SwiftContext(fileID: fileID, line: line, function: function),
             invoker: #function
         )
     }

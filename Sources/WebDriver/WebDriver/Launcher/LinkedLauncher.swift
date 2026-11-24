@@ -10,23 +10,28 @@ import Foundation
 
 /// An existing launcher.
 final class LinkedLauncher<Driver: WebDriverProtocol>: WebDriverLauncher {
-    
+
     public var driver: Driver
-    
+
+    public var host: String
+
     public var port: UInt16
-    
-    public var url: URL
-    
-    public func stop() {
-        
+
+    public func attach(sessionID: String) {
+
     }
-    
-    
-    init(driver: Driver,  url: URL, port: UInt16) {
+
+    /// Does nothing, as the server is not owned by this launcher.
+    public func stop() async {
+
+    }
+
+
+    init(driver: Driver, host: String, port: UInt16) {
         self.driver = driver
+        self.host = host
         self.port = port
-        self.url = url
     }
-    
-    
+
+
 }

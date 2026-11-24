@@ -11,24 +11,38 @@ import Foundation
 protocol WebDriverLauncher<Driver> {
     
     var driver: Driver { get }
-    
+
+    /// The host of the WebDriver server, without a scheme or port.
+    var host: String { get }
+
     var port: UInt16 { get }
-    
-    var url: URL { get }
-    
-    /// Cleanup the driver & session.
-    func stop()
-    
+
+    /// Tells the launcher the id of the session created on its server, so it can end the session if it is dropped without being closed.
+    func attach(sessionID: String)
+
+    /// Stops the server and cleans up after it. Calling it again does nothing.
+    func stop() async
+
     associatedtype Driver: WebDriverProtocol
-    
+
 }
 
 
 extension WebDriverLauncher {
-    
+
     var baseURL: URL {
-        URL(string: "http://\(self.url.absoluteString):\(self.port)")!
+        makeBaseURL(host: self.host, port: self.port)!
     }
+}
+
+
+/// Returns `http://host:port`, or `nil` if `host` is not a valid host.
+internal func makeBaseURL(host: String, port: UInt16) -> URL? {
+    var components = URLComponents()
+    components.scheme = "http"
+    components.host = host
+    components.port = Int(port)
+    return components.url
 }
 
 

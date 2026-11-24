@@ -12,12 +12,19 @@ import JSONParser
 extension Session {
     
     /// Close the connection.
+    ///
+    /// Deletes the session, which closes the browser, then stops the driver this session launched. The driver is stopped even if deleting the session fails.
     public func close(fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
-        defer { self.launcher.stop() }
-        let _ = try await self.data(.delete, "session/\(id)", data: nil,
-                                    context: SwiftContext(fileID: fileID, line: line, function: function),
-                                    origin: .session(self),
-                                    invoker: #function)
+        do {
+            let _ = try await self.data(.delete, "session/\(id)", data: nil,
+                                        context: SwiftContext(fileID: fileID, line: line, function: function),
+                                        origin: .session(self),
+                                        invoker: #function)
+        } catch {
+            await self.launcher.stop()
+            throw error
+        }
+        await self.launcher.stop()
     }
     
     

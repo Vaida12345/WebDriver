@@ -7,7 +7,6 @@
 
 import Foundation
 import FinderItem
-import ChildProcess
 
 
 extension WebDriver {
@@ -59,36 +58,27 @@ extension WebDriver {
         ///
         /// Resolution order:
         /// 1. `WEBDRIVER_GECKO_PATH` environment variable.
-        /// 2. Common macOS install paths.
+        /// 2. The directories in `PATH`.
+        /// 3. Common macOS install paths, as apps launched from Finder get a minimal `PATH`.
         static var geckoDriverPath: String? {
-            get {
-                if let override = ProcessInfo.processInfo.environment["WEBDRIVER_GECKO_PATH"],
-                   !override.isEmpty,
-                   FileManager.default.isExecutableFile(atPath: override) {
-                    return override
-                }
-                
-                let fallbackPaths = [
-                    "/opt/homebrew/bin/geckodriver",
-                    "/usr/local/bin/geckodriver"
-                ]
-                
-                return fallbackPaths.first(where: { FileManager.default.isExecutableFile(atPath: $0) })
+            let environment = ProcessInfo.processInfo.environment
+            let fileManager = FileManager.default
+            
+            if let override = environment["WEBDRIVER_GECKO_PATH"],
+               !override.isEmpty,
+               fileManager.isExecutableFile(atPath: override) {
+                return override
             }
-        }
-
-        /// Finds `geckodriver` from the current process `PATH`.
-        private static func geckoDriverPathFromPATH() async -> String? {
-            do {
-                let (path, _) = try await ChildProcess.run(.name("which"), arguments: ["geckodriver"])
-                
-                guard let output = path?.trimmingCharacters(in: .whitespacesAndNewlines),
-                      !output.isEmpty,
-                      FileManager.default.isExecutableFile(atPath: output) else { return nil }
-                return output
-            } catch {
-                return nil
-            }
+            
+            let searchPaths = (environment["PATH"] ?? "")
+                .split(separator: ":")
+                .map { "\($0)/geckodriver" }
+            let fallbackPaths = [
+                "/opt/homebrew/bin/geckodriver",
+                "/usr/local/bin/geckodriver"
+            ]
+            
+            return (searchPaths + fallbackPaths).first(where: { fileManager.isExecutableFile(atPath: $0) })
         }
         
     }
@@ -108,18 +98,46 @@ public extension WebDriver.Firefox {
         return try WebDriver.Firefox(capabilities: capabilities, flags: flags)
     }
     
-    internal func appendingFirefoxArg(arg: String) throws(WebDriver.InitializationError) -> WebDriver.Firefox {
+    /// The arguments passed to Firefox.
+    internal func firefoxArgs() throws(WebDriver.InitializationError) -> [String] {
+        guard let firefoxCapabilities = self.capabilities["moz:firefoxOptions", default: [:]] as? [String : Any],
+              let args = firefoxCapabilities["args", default: []] as? [String] else { throw .internalCapabilityCastError }
+        return args
+    }
+
+    internal func settingFirefoxArgs(_ args: [String]) throws(WebDriver.InitializationError) -> WebDriver.Firefox {
         var capabilities = self.capabilities // copy
         guard var firefoxCapabilities = capabilities["moz:firefoxOptions", default: [:]] as? [String : Any] else { throw .internalCapabilityCastError }
-        guard var args = firefoxCapabilities["args", default: []] as? [String] else { throw .internalCapabilityCastError }
-        args.append(arg)
-        
+
         firefoxCapabilities["args"] = args
         capabilities["moz:firefoxOptions"] = firefoxCapabilities
-        
+
         return try WebDriver.Firefox(capabilities: capabilities, flags: flags)
     }
-    
+
+    internal func appendingFirefoxArg(arg: String) throws(WebDriver.InitializationError) -> WebDriver.Firefox {
+        try self.settingFirefoxArgs(self.firefoxArgs() + [arg])
+    }
+
+    /// Replaces the value following `option`, or appends `option` and `value` when `option` is absent.
+    internal func settingFirefoxArg(_ option: String, value: String) throws(WebDriver.InitializationError) -> WebDriver.Firefox {
+        var args = try self.firefoxArgs()
+        if let index = args.firstIndex(of: option), index + 1 < args.count {
+            args[index + 1] = value
+        } else {
+            args.append(contentsOf: [option, value])
+        }
+        return try self.settingFirefoxArgs(args)
+    }
+
+    /// The value following `option` in the Firefox arguments.
+    internal func firefoxArg(after option: String) -> String? {
+        guard let args = try? self.firefoxArgs(),
+              let index = args.firstIndex(of: option),
+              index + 1 < args.count else { return nil }
+        return args[index + 1]
+    }
+
     
     /// Absolute path to the custom Firefox binary to use.
     ///
@@ -136,29 +154,30 @@ public extension WebDriver.Firefox {
     
     /// Start with the profile with the given path.
     ///
+    /// Replaces any profile set before.
+    ///
     /// - Warning: The API may return error when an instance with the same profile is open.
     func profile(noCopying location: FinderItem) throws(WebDriver.InitializationError) -> WebDriver.Firefox {
-        try self.appendingFirefoxArg(arg: "-profile")
-            .appendingFirefoxArg(arg: location.path)
-    }
-    
-    /// Start with the profile with the given path.
-    ///
-    /// This implementation will create a temp copy of the profile to avoid conflicts.
-    func profile(location: FinderItem) async throws -> WebDriver.Firefox {
-        let temp = FinderItem.temporaryDirectory/"\(UUID()).tempprofile"
-        try location.copy(to: temp)
-        var new = try self.appendingFirefoxArg(arg: "-profile").appendingFirefoxArg(arg: temp.path)
-        new.flags.insert(.deleteProfileAfterUse)
+        var new = try self.settingFirefoxArg("-profile", value: location.path)
+        new.flags.remove(.copyProfileOnLaunch)
         return new
     }
-    
+
+    /// Start with a copy of the profile with the given path.
+    ///
+    /// Each session started from this driver gets its own temporary copy of the profile, which is deleted when the session ends. This avoids conflicts with a running Firefox, or between sessions. Replaces any profile set before.
+    func profile(location: FinderItem) throws(WebDriver.InitializationError) -> WebDriver.Firefox {
+        var new = try self.settingFirefoxArg("-profile", value: location.path)
+        new.flags.insert(.copyProfileOnLaunch)
+        return new
+    }
+
     /// Bypass profile manager and launch application with the profile named `name`.
     ///
     /// `profile_name` is case sensitive. If you don't specify a profile name then the profile manager is opened instead.
     func profile(named name: String) throws(WebDriver.InitializationError) -> WebDriver.Firefox {
         try self.appendingFirefoxArg(arg: "-P")
-            .appendingFirefoxArg(arg: "\"\(name)\"")
+            .appendingFirefoxArg(arg: name)
     }
     
     /// Make this instance the active application.
