@@ -39,9 +39,18 @@ final class DriverProcessLauncher<Driver: WebDriverProtocol>: WebDriverLauncher 
 
     private let state = OSAllocatedUnfairLock(initialState: State())
 
+    private var knownChildren: [pid_t] {
+        self.state.withLock { $0.knownChildren }
+    }
+
 
     public func attach(sessionID: String) {
-        self.state.withLock { $0.sessionID = sessionID }
+        // The browser exists once the session is created. Remember it, as it can no longer be found through the driver if the driver exits first.
+        let children = DriverProcess.childProcesses(of: self.process.processIdentifier)
+        self.state.withLock {
+            $0.sessionID = sessionID
+            $0.knownChildren = children
+        }
     }
 
     /// Stops the driver process, waiting for it to exit.
@@ -49,7 +58,7 @@ final class DriverProcessLauncher<Driver: WebDriverProtocol>: WebDriverLauncher 
     /// Call it after the session was deleted, so that the driver has already closed the browser.
     public func stop() async {
         guard self.markStopped() != nil else { return }
-        await DriverProcess.terminate(pid: self.process.processIdentifier, output: self.output, name: self.name)
+        await DriverProcess.terminate(pid: self.process.processIdentifier, output: self.output, name: self.name, knownChildren: self.knownChildren)
         self.cleanup()
     }
 
@@ -182,6 +191,7 @@ final class DriverProcessLauncher<Driver: WebDriverProtocol>: WebDriverLauncher 
         let name = self.name
         let baseURL = self.baseURL
         let cleanup = self.cleanup
+        let knownChildren = self.knownChildren
 
         Task.detached {
             if let sessionID {
@@ -190,7 +200,7 @@ final class DriverProcessLauncher<Driver: WebDriverProtocol>: WebDriverLauncher 
                 request.httpMethod = "DELETE"
                 _ = try? await URLSession.shared.data(for: request)
             }
-            await DriverProcess.terminate(pid: pid, output: output, name: name)
+            await DriverProcess.terminate(pid: pid, output: output, name: name, knownChildren: knownChildren)
             cleanup()
         }
     }
@@ -198,6 +208,7 @@ final class DriverProcessLauncher<Driver: WebDriverProtocol>: WebDriverLauncher 
 
     private struct State: Sendable {
         var sessionID: String?
+        var knownChildren: [pid_t] = []
         var isStopped = false
     }
 
@@ -225,16 +236,25 @@ enum DriverProcess {
     /// Stops the process and the processes it started, sending `SIGTERM`, then `SIGKILL` to those still running after five seconds.
     ///
     /// The children, such as the Firefox that `geckodriver` launched, are found before the process is signaled. Once it exits, they are reparented to `launchd` and could no longer be found, so they would keep running.
-    static func terminate(pid: pid_t, output: ProcessOutput, name: String) async {
-        guard output.exitStatus == nil else { return }
-        let children = childProcesses(of: pid)
+    ///
+    /// - Parameter knownChildren: Children recorded earlier. If the process has already exited, those still running, which `launchd` adopted, are stopped, so that a crashed driver does not leave its browser behind.
+    static func terminate(pid: pid_t, output: ProcessOutput, name: String, knownChildren: [pid_t] = []) async {
+        let hasExited = output.exitStatus != nil
+        var children = hasExited ? [] : childProcesses(of: pid)
+        for child in knownChildren where !children.contains(child) {
+            // A recorded child is only ours if it is still alive and, once the driver exited, was adopted by `launchd`.
+            guard kill(child, 0) == 0, hasExited ? parentProcess(of: child) == 1 : parentProcess(of: child) == pid else { continue }
+            children.append(child)
+        }
 
-        kill(pid, SIGTERM)
+        if !hasExited {
+            kill(pid, SIGTERM)
+        }
         for child in children {
             kill(child, SIGTERM)
         }
 
-        if await !output.wait(for: .exit, timeout: .seconds(5)) {
+        if !hasExited, await !output.wait(for: .exit, timeout: .seconds(5)) {
             logger.error("\(name) did not exit after SIGTERM, sending SIGKILL.")
             kill(pid, SIGKILL)
             _ = await output.wait(for: .exit, timeout: .seconds(1))
@@ -252,6 +272,14 @@ enum DriverProcess {
             }
             try? await Task.sleep(for: .milliseconds(100))
         }
+    }
+
+    /// Returns the id of the parent of the process, or `nil` if it cannot be read.
+    static func parentProcess(of pid: pid_t) -> pid_t? {
+        var info = proc_bsdinfo()
+        let size = proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &info, Int32(MemoryLayout<proc_bsdinfo>.size))
+        guard size == Int32(MemoryLayout<proc_bsdinfo>.size) else { return nil }
+        return pid_t(info.pbi_ppid)
     }
 
     /// Returns the ids of the direct children of the process.
