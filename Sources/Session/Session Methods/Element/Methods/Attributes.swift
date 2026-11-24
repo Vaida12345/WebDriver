@@ -7,6 +7,7 @@
 
 import CoreGraphics
 import Essentials
+import JSONParser
 
 
 extension Element {
@@ -108,13 +109,13 @@ extension Element {
         case .original:
             try await self.parser(.get, "attribute/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function))
         case .script:
-            try await self.parser(.get, "property/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function))
+            try await self.parser(.get, "property/\(attribute.propertyName)", context: SwiftContext(fileID: fileID, line: line, function: function))
         case .latest:
             try await self.parser(.get, "css/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function))
         }
-        
+
         do {
-            return try parser.decode(String.self, forKey: "value")
+            return try Self.decodeLoadedValue(parser)
         } catch let caught {
             guard case DecodingError.valueNotFound = caught else { throw caught }
             throw ElementError.noSuchAttribute(attribute: attribute.rawValue, source: source, underlyingError: caught, context: SwiftContext(fileID: fileID, line: line, function: function))
@@ -126,18 +127,36 @@ extension Element {
         do {
             switch source {
             case .original:
-                return try await self.parser(.get, "attribute/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function)).decode(String.self, forKey: "value")
+                return try await Self.decodeLoadedValue(self.parser(.get, "attribute/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function)))
             case .script:
-                return try await self.parser(.get, "property/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function)).decode(String.self, forKey: "value")
+                return try await Self.decodeLoadedValue(self.parser(.get, "property/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function)))
             case .latest:
-                return try await self.parser(.get, "css/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function)).decode(String.self, forKey: "value")
+                return try await Self.decodeLoadedValue(self.parser(.get, "css/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function)))
             }
         } catch let caught {
             guard case DecodingError.valueNotFound = caught else { throw caught }
             throw ElementError.noSuchAttribute(attribute: attribute, source: source, underlyingError: caught, context: SwiftContext(fileID: fileID, line: line, function: function))
         }
     }
-    
+
+    /// Decodes `value` as a string, formatting a boolean or number, as properties such as `disabled` or `tabIndex` are not strings.
+    ///
+    /// - Throws: `DecodingError.valueNotFound` when `value` is `null`.
+    private static func decodeLoadedValue(_ parser: JSONParser) throws -> String {
+        if let string = try? parser.decode(String.self, forKey: "value") {
+            return string
+        } else if let bool = try? parser.decode(Bool.self, forKey: "value") {
+            return String(bool)
+        } else if let number = try? parser.decode(Double.self, forKey: "value") {
+            if number.rounded() == number, let integer = Int(exactly: number) {
+                return String(integer)
+            }
+            return String(number)
+        }
+        // Rethrows the error for a `String`, which is `valueNotFound` for `null`.
+        return try parser.decode(String.self, forKey: "value")
+    }
+
     
     public enum ElementError: GenericError {
         case noSuchAttribute(attribute: String, source: LoadSource, underlyingError: any Error, context: SwiftContext)
@@ -386,6 +405,30 @@ extension Element {
         
         /// The HTML content *inside* an element, *excluding* the element's own tag.
         case innerHTML
+
+        /// The name of the DOM property that reflects the attribute, used with ``LoadSource/script``.
+        ///
+        /// It differs from the attribute name for some attributes, for example, `class` is reflected by `className`, and `for` by `htmlFor`.
+        var propertyName: String {
+            switch self {
+            case .acceptCharset: "acceptCharset"
+            case .accessKey: "accessKey"
+            case .className: "className"
+            case .colspan: "colSpan"
+            case .crossorigin: "crossOrigin"
+            case .datetime: "dateTime"
+            case .forAttribute: "htmlFor"
+            case .formaction: "formAction"
+            case .httpEquiv: "httpEquiv"
+            case .inputmode: "inputMode"
+            case .maxlength: "maxLength"
+            case .minlength: "minLength"
+            case .rowspan: "rowSpan"
+            case .tabindex: "tabIndex"
+            case .usemap: "useMap"
+            default: self.rawValue
+            }
+        }
     }
     
 }

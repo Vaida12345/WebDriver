@@ -34,6 +34,9 @@ final class DriverProcessLauncher<Driver: WebDriverProtocol>: WebDriverLauncher 
 
     private let output: ProcessOutput
 
+    /// The cleanup passed as `onExit`, run once the driver and the processes it started have exited.
+    private let cleanup: @Sendable () -> Void
+
     private let state = OSAllocatedUnfairLock(initialState: State())
 
 
@@ -47,6 +50,7 @@ final class DriverProcessLauncher<Driver: WebDriverProtocol>: WebDriverLauncher 
     public func stop() async {
         guard self.markStopped() != nil else { return }
         await DriverProcess.terminate(pid: self.process.processIdentifier, output: self.output, name: self.name)
+        self.cleanup()
     }
 
 
@@ -57,7 +61,7 @@ final class DriverProcessLauncher<Driver: WebDriverProtocol>: WebDriverLauncher 
     ///   - name: The name of the driver executable, used in logs and errors.
     ///   - executable: The path to the driver executable.
     ///   - arguments: The arguments for an attempt that listens on the given port, on ``driverLoopback``.
-    ///   - onExit: Cleanup that runs once the process has exited, or when launching fails.
+    ///   - onExit: Cleanup that runs when launching fails, or once ``stop()`` or `deinit` has stopped the process and the processes it started, such as the browser.
     ///   - maxRetryCount: Number of random-port attempts before failing.
     init(
         driver: Driver,
@@ -111,7 +115,8 @@ final class DriverProcessLauncher<Driver: WebDriverProtocol>: WebDriverLauncher 
 
             logger.info("\(name) launched at \(driverLoopback):\(port) (attempt \(attempt)/\(retryCount))")
 
-            output.onExit(onExit)
+            // Not `output.onExit`: the driver exits before the browser it started, which may still be using files that the cleanup removes.
+            self.cleanup = onExit
             self.port = port
             self.process = process
             self.output = output
@@ -176,6 +181,7 @@ final class DriverProcessLauncher<Driver: WebDriverProtocol>: WebDriverLauncher 
         let output = self.output
         let name = self.name
         let baseURL = self.baseURL
+        let cleanup = self.cleanup
 
         Task.detached {
             if let sessionID {
@@ -185,6 +191,7 @@ final class DriverProcessLauncher<Driver: WebDriverProtocol>: WebDriverLauncher 
                 _ = try? await URLSession.shared.data(for: request)
             }
             await DriverProcess.terminate(pid: pid, output: output, name: name)
+            cleanup()
         }
     }
 

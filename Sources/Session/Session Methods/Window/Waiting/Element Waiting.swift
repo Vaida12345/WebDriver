@@ -67,7 +67,8 @@ extension Session.Window {
                     }
                     return element
                 }
-            } catch let error as WebDriverError where error.code == .no_such_element {
+            } catch let error as WebDriverError where error.code == .no_such_element || error.code == .stale_element_reference {
+                // A stale element was replaced between being found and being checked, so it is looked up again.
                 try await sleepBeforeRetry()
                 continue
             } catch {

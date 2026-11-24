@@ -12,16 +12,24 @@ struct ConjunctionQuery: LocatorQuery {
 
     /// Separates the tag, if any, from the rest of the body.
     ///
-    /// - Precondition: The body contains at most one tag, as an element cannot have two tag names.
+    /// A tag repeated with the same name, as in `$0.tag == "a" && $0.hrefText == "Docs"`, counts once.
+    ///
+    /// - Precondition: The body contains at most one distinct tag, as an element cannot have two tag names.
     func splitTag() -> (tag: TagQuery?, rest: [any LocatorQuery]) {
         var rest = body
         let tag = rest.firstIndex(where: { $0 is TagQuery }).map({ rest.remove(at: $0) }) as? TagQuery
+        if let tag {
+            rest.removeAll(where: { ($0 as? TagQuery)?.value == tag.value })
+        }
         precondition(!rest.contains(where: { $0 is TagQuery }), "An element cannot have two tag names. The query itself is `false`.")
         return (tag, rest)
     }
 
     var cssDescription: String? {
         let (tag, body) = self.splitTag()
+
+        // A CSS selector list cannot be nested in a compound selector: `div` with `[id="a"], [id="b"]` would give `div[id="a"], [id="b"]`.
+        guard !body.contains(where: { $0 is DisjunctionQuery }) else { return nil }
 
         let descriptions = body.map(\.cssDescription)
         let compact = descriptions.compacted()
@@ -50,7 +58,8 @@ struct ConjunctionQuery: LocatorQuery {
     /// The XPath location path `//tag[…]` when the body has a tag, or a parenthesized predicate otherwise.
     var description: String {
         let (tag, body) = self.splitTag()
-        let descriptions = body.map(\.description)
+        // Predicates, not `description`, so that a nested location path such as `//a[…]` is never put inside `[…]`.
+        let descriptions = body.map(\.xpathPredicate)
 
         if let tag = tag?.value {
             return "//\(tag)[" + descriptions.joined(separator: " and ") + "]"

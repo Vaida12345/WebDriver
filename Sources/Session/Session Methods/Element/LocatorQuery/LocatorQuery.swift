@@ -31,11 +31,12 @@ public func && (lhs: any LocatorQuery, rhs: any LocatorQuery) -> any LocatorQuer
     if let lhs = lhs as? DisjunctionQuery, lhs.containsTag {
         // need to push in the AND
         // (a OR b) AND c => (a AND c) or (b AND c)
-        return DisjunctionQuery(body: lhs.body.map({ ConjunctionQuery(body: [$0, rhs]) }))
+        // `&&` rather than `ConjunctionQuery`, so that each arm is flattened, and distributed again if `rhs` is also a disjunction.
+        return DisjunctionQuery(body: lhs.body.map({ $0 && rhs }))
     } else if let rhs = rhs as? DisjunctionQuery, rhs.containsTag {
         // need to push in the AND
         // (a OR b) AND c => (a AND c) or (b AND c)
-        return DisjunctionQuery(body: rhs.body.map({ ConjunctionQuery(body: [$0, lhs]) }))
+        return DisjunctionQuery(body: rhs.body.map({ lhs && $0 }))
     }
     
     if let lhs = lhs as? ConjunctionQuery, let rhs = rhs as? ConjunctionQuery {

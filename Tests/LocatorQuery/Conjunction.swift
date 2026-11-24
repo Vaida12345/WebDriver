@@ -74,4 +74,39 @@ struct ConjunectionLocator {
         #expect(query == Query(locator: .css, value: "button[class~=\"btn\"][class~=\"large\"]"))
     }
 
+    /// Each arm of the tag disjunction stays a flat `//tag[…]`, rather than nesting an absolute path in a predicate.
+    @Test func tagDisjunctionANDChained() async throws {
+        let query = query {
+            ($0.tag == "a" || $0.tag == "button") && $0.class == "x" && $0.text == "OK"
+        }
+
+        #expect(query == Query(locator: .xpath, value: "//a[@class=\"x\" and text()=\"OK\"] | //button[@class=\"x\" and text()=\"OK\"]"))
+    }
+
+    @Test func attributeANDTagDisjunction() async throws {
+        let query = query {
+            $0.class == "x" && ($0.tag == "a" || $0.tag == "button")
+        }
+
+        #expect(query == Query(locator: .css, value: "a[class=\"x\"], button[class=\"x\"]"))
+    }
+
+    /// `hrefText` adds its own `a` tag, which is the same tag.
+    @Test func sameTagANDLinkText() async throws {
+        let query = query {
+            $0.tag == "a" && $0.hrefText == "Docs"
+        }
+
+        #expect(query == Query(locator: .xpath, value: "//a[normalize-space(.)=\"Docs\"]"))
+    }
+
+    /// A CSS selector list cannot be nested, so this falls back to XPath.
+    @Test func tagANDAttributeDisjunction() async throws {
+        let query = query {
+            $0.tag == "div" && ($0.id == "a" || $0.id == "b")
+        }
+
+        #expect(query == Query(locator: .xpath, value: "//div[(@id=\"a\" or @id=\"b\")]"))
+    }
+
 }

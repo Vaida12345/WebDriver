@@ -122,7 +122,7 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
         case 200, 201, 202, 203, 204, 205, 206, 207, 208, 226:
             return (data, response)
             
-        case 400, 404, 405, 500:
+        case 400...599:
             do {
                 let parser = try JSONParser(data: data).decode(JSONParser.self, forKey: "value")
                 let elementSummary: String? = if case .element(let element) = origin { await element.summaryIfAvailable } else { nil }

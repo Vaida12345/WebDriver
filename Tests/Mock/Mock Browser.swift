@@ -16,7 +16,7 @@ import WebDriver
 ///
 /// Requests made by a ``startSession()`` session are intercepted by ``MockWebDriverProtocol`` and evaluated against the web view's DOM, so tests exercise the real HTTP and script paths without launching a browser.
 ///
-/// Only the endpoints needed by the tests are implemented: creating and deleting the session, getting and switching the window, finding elements, executing scripts, and taking screenshots. Other endpoints respond with `unknown command`.
+/// Only the endpoints needed by the tests are implemented: creating and deleting the session, getting and switching the window, finding elements, reading attributes, properties, and the enabled state, executing scripts, and taking screenshots. Other endpoints respond with `unknown command`.
 @MainActor
 final class MockBrowser {
 
@@ -34,6 +34,12 @@ final class MockBrowser {
 
     /// Replaces the base64 value returned by the screenshot endpoints, to test undecodable responses.
     var screenshotOverride: String?
+
+    /// When set, script execution responds with this error instead, to test errors sent with other status codes.
+    var scriptErrorOverride: (status: Int, error: String)?
+
+    /// The number of upcoming element state requests that respond with `stale element reference`, as if the element was replaced after being found.
+    var staleStateResponses = 0
 
     /// The size of the image returned by the viewport screenshot endpoint.
     static let viewportScreenshotSize = (width: 4, height: 3)
@@ -93,7 +99,20 @@ final class MockBrowser {
         case ("POST", "session/element/{id}/elements"):
             return await self.evaluate("findAll", find.merging(["root": path[3]]) { $1 })
         case ("POST", "session/execute/sync"):
+            if let (status, error) = self.scriptErrorOverride {
+                return Self.error(status, error, "Overridden by MockBrowser")
+            }
             return await self.evaluate("execute", ["script": body["script"] ?? "", "args": body["args"] ?? []])
+        case ("GET", "session/element/{id}/enabled"):
+            guard self.staleStateResponses == 0 else {
+                self.staleStateResponses -= 1
+                return Self.error(404, "stale element reference", "The element is no longer attached to the DOM")
+            }
+            return await self.evaluate("enabled", ["root": path[3]])
+        case ("GET", let route) where route.hasPrefix("session/element/{id}/attribute/") && path.count == 6:
+            return await self.evaluate("attribute", ["root": path[3], "name": path[5]])
+        case ("GET", let route) where route.hasPrefix("session/element/{id}/property/") && path.count == 6:
+            return await self.evaluate("property", ["root": path[3], "name": path[5]])
         default:
             return Self.error(404, "unknown command", "\(method) /\(path.joined(separator: "/")) is not implemented by MockBrowser")
         }
@@ -183,6 +202,12 @@ final class MockBrowser {
         }
         case "execute":
             return ok(serialize(new Function(payload.script).apply(null, deref(payload.args))));
+        case "enabled":
+            return ok(!deref({ [KEY]: payload.root }).disabled);
+        case "attribute":
+            return ok(deref({ [KEY]: payload.root }).getAttribute(payload.name));
+        case "property":
+            return ok(serialize(deref({ [KEY]: payload.root })[payload.name]));
         }
         return fail(404, "unknown command", "Unknown action: " + action);
     } catch (error) {

@@ -59,25 +59,61 @@ extension Session.Window {
         func makeJSON() -> [String : Any] {
             var map: [String : Any] = [
                 "name": name,
-                "domain": domain,
                 "secure": secure,
                 "httpOnly": httpOnly,
                 "value": value,
                 "path": path,
             ]
-            
+
+            if !domain.isEmpty {
+                map["domain"] = domain
+            }
+
             if let sameSite {
                 map["sameSite"] = sameSite.rawValue
             }
-            
+
             if let expiry {
-                map["expiry"] = expiry.timeIntervalSince1970
+                // The specification requires an integer number of seconds; drivers reject fractions.
+                map["expiry"] = Int(expiry.timeIntervalSince1970.rounded(.down))
             }
-            
+
             return map
         }
-        
-        
+
+
+        /// Creates a cookie, which can be added using ``Session/Window/Cookies``.
+        ///
+        /// - Parameters:
+        ///   - name: The name of the cookie.
+        ///   - value: The value stored in the cookie.
+        ///   - domain: The domain associated with the cookie. Pass an empty string to use the domain of the current page.
+        ///   - path: The URL path for which the cookie is valid.
+        ///   - secure: Whether the cookie is only sent over HTTPS connections.
+        ///   - httpOnly: Whether the cookie cannot be accessed by JavaScript.
+        ///   - expiry: The expiration date of the cookie, rounded down to whole seconds. Pass `nil` for a session cookie.
+        ///   - sameSite: The SameSite policy of the cookie.
+        public init(
+            name: String,
+            value: String,
+            domain: String = "",
+            path: String = "/",
+            secure: Bool = false,
+            httpOnly: Bool = false,
+            expiry: Date? = nil,
+            sameSite: CrossSiteRequestBehavior? = nil
+        ) {
+            self.name = name
+            self.value = value
+            self.domain = domain
+            self.path = path
+            self.secure = secure
+            self.httpOnly = httpOnly
+            self.expiry = expiry
+            self.sameSite = sameSite
+        }
+
+
         init(parser: JSONParser) throws {
             self.domain = try parser.decode(String.self, forKey: "domain")
             self.secure = try parser.decode(Bool.self, forKey: "secure")
@@ -85,7 +121,7 @@ extension Session.Window {
             self.httpOnly = try parser.decode(Bool.self, forKey: "httpOnly")
             self.value = try parser.decode(String.self, forKey: "value")
             self.path = try parser.decode(String.self, forKey: "path")
-            self.sameSite = try CrossSiteRequestBehavior(rawValue: parser.decode(String.self, forKey: "sameSite"))
+            self.sameSite = try parser.decodeIfPresent(String.self, forKey: "sameSite").flatMap(CrossSiteRequestBehavior.init(rawValue:))
             self.name = try parser.decode(String.self, forKey: "name")
         }
         
