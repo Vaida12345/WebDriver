@@ -97,11 +97,11 @@ struct LauncherTests {
         let deadline = ContinuousClock.now + .seconds(5)
         while children.isEmpty, ContinuousClock.now < deadline {
             try await Task.sleep(for: .milliseconds(50))
-            children = GeckoLauncher.childProcesses(of: process.processIdentifier)
+            children = DriverProcess.childProcesses(of: process.processIdentifier)
         }
         try #require(children.count == 1)
 
-        await GeckoLauncher.terminate(pid: process.processIdentifier, output: output)
+        await DriverProcess.terminate(pid: process.processIdentifier, output: output, name: "sh")
         #expect(output.exitStatus != nil)
         #expect(kill(children[0], 0) != 0)
     }

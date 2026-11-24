@@ -7,6 +7,7 @@
 
 import Foundation
 import FinderItem
+import OSLog
 
 
 extension WebDriver {
@@ -26,10 +27,40 @@ extension WebDriver {
         
         
         public func startSession(urlSessionConfiguration: URLSessionConfiguration = .ephemeral, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> Session {
-            guard Firefox.isAvailable else { throw InitializationError.driverNotAvailable }
-            
-            let launcher = try await GeckoLauncher(driver: self)
+            guard let geckoDriverPath = Firefox.geckoDriverPath else { throw InitializationError.driverNotAvailable }
+
+            // Each launch gets its own copy of the profile, deleted once geckodriver, which waits for Firefox when the session is deleted, has exited.
+            var driver = self
+            var temporaryProfile: String?
+            if self.flags.contains(.copyProfileOnLaunch), let template = self.firefoxArg(after: "-profile") {
+                let copy = FinderItem.temporaryDirectory/"\(UUID()).tempprofile"
+                try FinderItem(at: template).copy(to: copy)
+                temporaryProfile = copy.path
+                driver = try driver.settingFirefoxArg("-profile", value: copy.path)
+            }
+
+            let launcher = try await DriverProcessLauncher(
+                driver: driver,
+                name: "geckodriver",
+                executable: geckoDriverPath,
+                arguments: { port in
+                    // Each launch gets its own BiDi port, as the default, 9222, is shared by all Firefox sessions.
+                    ["--host", driverLoopback, "-p", port.description, "--websocket-port", generateRandomPort().description]
+                },
+                onExit: { [temporaryProfile] in
+                    Firefox.removeTemporaryProfile(at: temporaryProfile)
+                }
+            )
             return try await Session(launcher: launcher, context: SwiftContext(fileID: fileID, line: line, function: function), invoker: #function, urlSessionConfiguration: urlSessionConfiguration)
+        }
+
+        private static func removeTemporaryProfile(at path: String?) {
+            guard let path else { return }
+            do {
+                try FileManager.default.removeItem(atPath: path)
+            } catch {
+                Logger(subsystem: "WebDriver", category: "Firefox").fault("Failed to delete temporary profile at \(path): \(error)")
+            }
         }
         
         

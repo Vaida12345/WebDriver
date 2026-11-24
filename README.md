@@ -12,6 +12,8 @@ let driver = WebDriver.Firefox()
     .pageLoadStrategy(.eager)
 ```
 
+Safari works the same way with `WebDriver.Safari()`. Its driver comes with macOS, but you need to allow remote automation once, with `safaridriver --enable` or Safari's Develop menu.
+
 Launch the driver and create a new session. All interactions with the driver will be conducted through this session.
 
 ```swift

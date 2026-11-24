@@ -13,13 +13,21 @@ import WebDriver
 
 
 /// Runs against the installed `geckodriver` and Firefox. Opt in with `GECKO_INTEGRATION=1`.
+///
+/// Firefox opens visible windows while the tests run, two at once in ``concurrentSessions()``.
+///
+/// > Important:
+/// > The process that runs the tests must be allowed to control Firefox. On macOS 27, `swift test` is not, and Firefox fails to start with "Profile Missing", even from Terminal.app. The same code works from an executable started with `swift run`, and from apps that were given permission to control Firefox. Processes started from the Claude app cannot launch Firefox at all.
+///
+/// > Note:
+/// > The tests do not use ``WebDriver/Firefox/headless()``: on macOS 27 with Firefox 154, headless Firefox hangs at full CPU on its own, without geckodriver.
 @Suite(.serialized, .enabled(if: ProcessInfo.processInfo.environment["GECKO_INTEGRATION"] == "1" && WebDriver.Firefox.isAvailable))
 struct GeckoIntegrationTests {
 
     /// Writes far more than a pipe buffer holds to geckodriver's output, then checks the session still responds.
     @Test(.timeLimit(.minutes(1)))
     func noisyOutputDoesNotHang() async throws {
-        let session = try await WebDriver.Firefox().headless().startSession()
+        let session = try await WebDriver.Firefox().startSession()
         let window = try await session.window
         // geckodriver enables `dump`, which writes to Firefox's stdout, which geckodriver forwards.
         _ = try await window.execute("const line = 'x'.repeat(1000) + '\\n'; for (let i = 0; i < 10000; i++) { dump(line) }")
@@ -30,7 +38,7 @@ struct GeckoIntegrationTests {
 
     @Test(.timeLimit(.minutes(1)))
     func concurrentSessions() async throws {
-        let driver = try WebDriver.Firefox().headless()
+        let driver = try WebDriver.Firefox()
         async let first = driver.startSession()
         async let second = driver.startSession()
         let sessions = try await [first, second]
@@ -50,7 +58,7 @@ struct GeckoIntegrationTests {
         try FileManager.default.createDirectory(atPath: template.path, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(atPath: template.path) }
 
-        let driver = try WebDriver.Firefox().headless().profile(location: template)
+        let driver = try WebDriver.Firefox().profile(location: template)
         let first = try await driver.startSession()
         let second = try await driver.startSession()
 
@@ -72,7 +80,7 @@ struct GeckoIntegrationTests {
         try FileManager.default.createDirectory(atPath: template.path, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(atPath: template.path) }
 
-        var session: Session? = try await WebDriver.Firefox().headless().profile(location: template).startSession()
+        var session: Session? = try await WebDriver.Firefox().profile(location: template).startSession()
         let profile = (session!.launcher.driver as! WebDriver.Firefox).firefoxArg(after: "-profile")!
         #expect(processCount(matching: profile) > 0)
 
