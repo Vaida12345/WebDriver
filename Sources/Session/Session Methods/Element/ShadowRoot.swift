@@ -20,6 +20,8 @@ extension Session.Window {
     /// let button = try await host.shadowRoot.findElement(where: { $0.tag == "button" })
     /// ```
     ///
+    /// To search the content of every open shadow root at once, without finding the hosts first, use ``Session/Window/findElement(where:includingShadowContent:fileID:line:function:)``.
+    ///
     /// - Important: Browsers support CSS selectors, tag names, and link text inside shadow roots, but usually not XPath. Queries that compile to XPath, such as those matching text, may fail with ``WebDriverError/ErrorCode/invalid_argument`` or ``WebDriverError/ErrorCode/invalid_selector``.
     ///
     /// ## See Also

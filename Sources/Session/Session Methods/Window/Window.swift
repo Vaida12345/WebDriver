@@ -35,6 +35,7 @@ extension Session {
     /// - ``diagnosticSnapshot``
     /// - ``execute(_:async:)``
     /// - ``execute(_:args:async:)``
+    /// - ``execute(_:as:async:fileID:line:function:)``
     /// - ``screenshot(fullPage:fileID:line:function:)``
     /// - ``render(orientation:scale:includesBackground:width:height:scaleToFit:margin:)``
     ///
@@ -59,6 +60,9 @@ extension Session {
     ///
     /// ### Element
     /// - ``activeElement``
+    /// - ``findElement(where:includingShadowContent:fileID:line:function:)``
+    /// - ``findElements(where:includingShadowContent:fileID:line:function:)``
+    /// - ``ShadowContentSearchError``
     /// - ``findElement(where:)-8rmlq``
     /// - ``findElements(where:)-794xe``
     /// - <doc:Locator>

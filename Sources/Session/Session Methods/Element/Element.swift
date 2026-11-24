@@ -24,6 +24,8 @@ extension Session.Window {
     /// - ``findElements(where:)-794xe``
     /// - <doc:Locator>
     /// - ``shadowRoot``
+    /// - ``findElement(where:includingShadowContent:fileID:line:function:)``
+    /// - ``findElements(where:includingShadowContent:fileID:line:function:)``
     ///
     /// ### State
     /// - ``isSelected``

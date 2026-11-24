@@ -92,6 +92,14 @@ Elements inside a web component are found through its shadow root.
 ```swift
 let host = try await window.findElement(where: { $0.tag == "my-component" })
 let button = try await host.shadowRoot.findElement(where: { $0.tag == "button" })
+
+// Or search the page and all open shadow roots at once, with a query that compiles to CSS.
+let buy = try await window.findElement(where: { $0.tag == "button" && $0.title == "Buy" }, includingShadowContent: true)
+```
+
+For anything the finders cannot express, a script can return elements.
+```swift
+let first = try await window.execute("return document.querySelector('my-list').shadowRoot.firstElementChild", as: Session.Window.Element.self)
 ```
 
 Keyboard and mouse actions are available on elements, and as custom sequences.
