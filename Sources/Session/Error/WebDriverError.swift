@@ -100,9 +100,9 @@ public struct WebDriverError: GenericError, @unchecked Sendable {
         public func detailedDescription(using descriptor: DetailedDescription.Descriptor<WebDriverError.Origin>) -> any DescriptionBlockProtocol {
             switch self {
             case .session(let session):
-                descriptor.constant(session.description)
+                descriptor.raw(session.description)
             case .window(let window):
-                descriptor.constant(window.description)
+                descriptor.raw(window.description)
             case .element(let element):
                 descriptor.value("", of: element)
             }
@@ -116,7 +116,7 @@ extension WebDriverError: CustomStringConvertible, DetailedStringConvertible {
     
     public func detailedDescription(using descriptor: DetailedDescription.Descriptor<WebDriverError>) -> any DescriptionBlockProtocol {
         descriptor.container("Error: \(self.code.description)") {
-            descriptor.constant("message: \(self.message)")
+            descriptor.raw("message: \(self.message)")
             descriptor.value(for: \.context)
             descriptor.value(for: \.origin)
             descriptor.value(for: \.invoker)
