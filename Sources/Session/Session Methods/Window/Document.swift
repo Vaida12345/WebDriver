@@ -16,6 +16,8 @@ extension Session.Window {
     
     /// A string serialization of the DOM
     ///
+    /// The serialization contains the current elements and their HTML attributes, including changes made by script. It does not contain properties changed by user interaction or script, such as typed text or a clicked checkbox, nor computed styles. Use ``Element/load(_:at:)-43sms`` at ``Element/LoadSource/script`` to read those.
+    ///
     /// > First Responder:
     /// > The first responder is switched to `self`.
     public var pageSource: String {

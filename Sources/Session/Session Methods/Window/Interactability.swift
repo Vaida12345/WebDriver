@@ -16,6 +16,8 @@ extension Session.Window {
     ///
     /// > First Responder:
     /// > The first responder is switched to `self`.
+    ///
+    /// - Important: Attribute queries match the HTML attributes only, as read with ``Element/LoadSource/original``, not properties changed by user interaction or script, such as typed text. See ``Element/LoadSource``.
     public func findElement(where predicate: @Sendable (Element.LocatorProxy) -> any LocatorQuery, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> Element {
         try await findElement(where: { predicate($0).makeQuery() }, fileID: fileID, line: line, function: function)
     }
@@ -24,6 +26,8 @@ extension Session.Window {
     ///
     /// > First Responder:
     /// > The first responder is switched to `self`.
+    ///
+    /// - Important: Attribute queries match the HTML attributes only, as read with ``Element/LoadSource/original``, not properties changed by user interaction or script, such as typed text. See ``Element/LoadSource``.
     public func findElement(where predicate: @Sendable (Element.LocatorProxy) -> Element.Query, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> Element {
         try await self.becomeFirstResponder(fileID: fileID, line: line, function: function)
         
@@ -42,6 +46,8 @@ extension Session.Window {
     ///
     /// > First Responder:
     /// > The first responder is switched to `self`.
+    ///
+    /// - Important: Attribute queries match the HTML attributes only, as read with ``Element/LoadSource/original``, not properties changed by user interaction or script, such as typed text. See ``Element/LoadSource``.
     public func findElements(where predicate: @Sendable (Element.LocatorProxy) -> any LocatorQuery, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> [Element] {
         try await findElements(where: { predicate($0).makeQuery() }, fileID: fileID, line: line, function: function)
     }
@@ -50,6 +56,8 @@ extension Session.Window {
     ///
     /// > First Responder:
     /// > The first responder is switched to `self`.
+    ///
+    /// - Important: Attribute queries match the HTML attributes only, as read with ``Element/LoadSource/original``, not properties changed by user interaction or script, such as typed text. See ``Element/LoadSource``.
     public func findElements(where predicate: @Sendable (Element.LocatorProxy) -> Element.Query, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> [Element] {
         try await self.becomeFirstResponder(fileID: fileID, line: line, function: function)
         

@@ -110,7 +110,7 @@ extension Element {
             try await self.parser(.get, "attribute/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function))
         case .script:
             try await self.parser(.get, "property/\(attribute.propertyName)", context: SwiftContext(fileID: fileID, line: line, function: function))
-        case .latest:
+        case .computedStyle:
             try await self.parser(.get, "css/\(attribute.rawValue)", context: SwiftContext(fileID: fileID, line: line, function: function))
         }
 
@@ -130,7 +130,7 @@ extension Element {
                 return try await Self.decodeLoadedValue(self.parser(.get, "attribute/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function)))
             case .script:
                 return try await Self.decodeLoadedValue(self.parser(.get, "property/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function)))
-            case .latest:
+            case .computedStyle:
                 return try await Self.decodeLoadedValue(self.parser(.get, "css/\(attribute)", context: SwiftContext(fileID: fileID, line: line, function: function)))
             }
         } catch let caught {
@@ -175,21 +175,43 @@ extension Element {
         }
     }
 
+    /// Where ``load(_:at:)-43sms`` reads a value from.
+    ///
+    /// An element stores its state in two independent places, and CSS adds a third:
+    ///
+    /// - term Attributes: The `key="value"` pairs in the element's tag, read with ``original``. They change only when the page or a script changes the DOM, such as with `setAttribute`.
+    /// - term Properties: The fields on the element's JavaScript object, read with ``script``. They are initialized from the attributes, but then follow user interaction and script, such as text typed into an input, or a checkbox being clicked.
+    /// - term Computed style: The final CSS values the element is rendered with, read with ``computedStyle``.
+    ///
+    /// For example, given `<input value="Alice">`, after the user replaces the text with `Bob`, ``original`` reads `Alice`, while ``script`` reads `Bob`.
+    ///
+    /// > Important:
+    /// > `findElement` and ``Session/Window-swift.struct/pageSource`` see the attributes (``original``) only. An attribute query is evaluated as a CSS attribute selector or an XPath `@` test, which never inspect properties, and the page source is a serialization of the DOM, which has no place for properties. Hence, in the example above, searching for `value == "Bob"` finds nothing, searching for `value == "Alice"` finds the input, and the page source contains `value="Alice"`.
+    /// >
+    /// > To match the state on screen, locate the element by other means, and compare its value at ``script``.
     public enum LoadSource: Sendable {
-        /// The original attribute in the HTML value.
+        /// The HTML attribute, as in `element.getAttribute(name)`.
+        ///
+        /// This reflects the current DOM, including changes made by `setAttribute`, but not property-only state, such as typed text or a clicked checkbox. Boolean attributes are read as `"true"` when present.
+        ///
+        /// This is what `findElement` and ``Session/Window-swift.struct/pageSource`` see.
         case original
 
-        /// The value that may have been modified by script.
+        /// The DOM property, as in `element[name]`, which reflects user interaction and script.
+        ///
+        /// Use this to read what is on screen, such as the text typed into an input, or whether a checkbox is checked. ``LoadableAttribute`` maps each attribute to its property name, such as `class` to `className`. Boolean and numeric properties are formatted as strings.
         case script
 
-        /// The latest value obtained by inspecting the CSS value.
-        case latest
+        /// The computed CSS value, as in `getComputedStyle(element).getPropertyValue(name)`.
+        ///
+        /// This is the value the element is rendered with after all style rules are applied, not an attribute. For example, `width` reads the rendered CSS width, rather than the `width` attribute.
+        case computedStyle
 
         var label: String {
             switch self {
-            case .original: "attribute"
-            case .script:   "property"
-            case .latest:   "CSS value"
+            case .original:      "attribute"
+            case .script:        "property"
+            case .computedStyle: "CSS value"
             }
         }
     }
