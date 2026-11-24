@@ -17,6 +17,20 @@ extension Session.Window {
     ///
     /// The content of open shadow roots, nested or not, is included inside each host as `<template shadowrootmode="open">`, trimmed the same way. Closed shadow roots, which scripts cannot reach, and the documents of frames are not included.
     ///
+    /// The snapshot is indented, two spaces per level, with each element on its own line:
+    ///
+    /// ```html
+    /// <html>
+    ///   <head></head>
+    ///   <body>
+    ///     <p id="greeting">Hello</p>
+    ///     <input id="name" type="text" required>
+    ///   </body>
+    /// </html>
+    /// ```
+    ///
+    /// Whitespace in text is collapsed, except in `pre` and `textarea`. An element whose only content is a short text stays on one line. Because text and elements are put on separate lines, inline content such as `Some <b>bold</b> text` is split across lines.
+    ///
     /// Use ``pageSource`` for a faithful serialization.
     ///
     /// > First Responder:
@@ -75,7 +89,52 @@ extension Session.Window {
                 });
                 return clone;
             };
-            return copy(document.documentElement).outerHTML;
+            // Serializes `root` indented, with each element and text on its own line.
+            const voids = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"]);
+            const preserved = new Set(["pre", "textarea"]);
+            const escapeText = text => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\u00A0/g, "&nbsp;");
+            const escapeAttribute = value => value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/\u00A0/g, "&nbsp;");
+            const collapse = text => text.replace(/\s+/g, " ").trim();
+            const startTag = element => "<" + element.localName + [...element.attributes].map(attribute =>
+                " " + attribute.name + (attribute.value === "" ? "" : "=\"" + escapeAttribute(attribute.value) + "\"")
+            ).join("") + ">";
+            const format = root => {
+                const lines = [];
+                const write = (node, depth) => {
+                    const indent = "  ".repeat(depth);
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        const text = collapse(node.data);
+                        if (text) lines.push(indent + escapeText(text));
+                        return;
+                    }
+                    if (node.nodeType !== Node.ELEMENT_NODE) return;
+                    const open = startTag(node);
+                    if (voids.has(node.localName)) {
+                        lines.push(indent + open);
+                        return;
+                    }
+                    const close = "</" + node.localName + ">";
+                    if (preserved.has(node.localName)) {
+                        lines.push(indent + open + escapeText(node.textContent) + close);
+                        return;
+                    }
+                    // A template's children are in its content.
+                    const children = [...(node.localName === "template" ? node.content : node).childNodes]
+                        .filter(child => child.nodeType === Node.ELEMENT_NODE || (child.nodeType === Node.TEXT_NODE && collapse(child.data)));
+                    if (children.length === 0) {
+                        lines.push(indent + open + close);
+                    } else if (children.length === 1 && children[0].nodeType === Node.TEXT_NODE && collapse(children[0].data).length <= 80) {
+                        lines.push(indent + open + escapeText(collapse(children[0].data)) + close);
+                    } else {
+                        lines.push(indent + open);
+                        for (const child of children) write(child, depth + 1);
+                        lines.push(indent + close);
+                    }
+                };
+                write(root, 0);
+                return lines.join("\n");
+            };
+            return format(copy(document.documentElement));
             """#
 
             let snapshot = try await self.execute(script, args: []).decode(String.self, forKey: "value")

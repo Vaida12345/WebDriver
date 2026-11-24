@@ -41,9 +41,20 @@ struct DiagnosticSnapshotTests {
 
         let snapshot = try await window.diagnosticSnapshot
 
-        #expect(snapshot.contains(#"<div id="host"><template shadowrootmode="open">"#))
-        #expect(snapshot.contains(#"<button id="shadow1""#))
-        #expect(snapshot.contains(#"<div id="inner-host"><template shadowrootmode="open"><b id="deep">Deep</b></template></div>"#))
+        let title = String(repeating: "x", count: 80) + "…(0.3 KB)"
+        #expect(snapshot.contains("""
+            <div id="host">
+              <template shadowrootmode="open">
+                <style>…(0.0 KB)</style>
+                <button id="shadow1" title="\(title)">Shadow</button>
+                <div id="inner-host">
+                  <template shadowrootmode="open">
+                    <b id="deep">Deep</b>
+                  </template>
+                </div>
+              </template>
+            </div>
+        """))
     }
 
     @Test func trimsShadowContent() async throws {
@@ -79,11 +90,57 @@ struct DiagnosticSnapshotTests {
         #expect(error?.details?.contains(#"<b id="deep">Deep</b>"#) == true)
     }
 
-    @Test func pagesWithoutShadowRootsAreUnchanged() async throws {
+    @Test func formatsASimplePage() async throws {
         let browser = try await MockBrowser(html: #"<html><head></head><body><p id="a" class="b">Text</p></body></html>"#)
         let window = try await browser.startSession().window
 
-        #expect(try await window.diagnosticSnapshot == #"<html><head></head><body><p id="a" class="b">Text</p></body></html>"#)
+        #expect(try await window.diagnosticSnapshot == """
+        <html>
+          <head></head>
+          <body>
+            <p id="a" class="b">Text</p>
+          </body>
+        </html>
+        """)
+    }
+    
+    /// Inline content is split across lines, `pre` keeps its whitespace, void elements have no end tag, and text and attributes are escaped.
+    @Test func formatsMixedContent() async throws {
+        let html = "<html><head><meta charset=\"utf-8\"></head><body><p id=\"mixed\">Some   <b>bold</b>\n text</p><pre id=\"code\">  a\n  b</pre><input id=\"field\" required value=\"a &quot;quote&quot; &amp; more\"><span>1 &lt; 2</span><div id=\"empty\"></div></body></html>"
+        let browser = try await MockBrowser(html: html)
+        let window = try await browser.startSession().window
+
+        #expect(try await window.diagnosticSnapshot == """
+        <html>
+          <head>
+            <meta charset="utf-8">
+          </head>
+          <body>
+            <p id="mixed">
+              Some
+              <b>bold</b>
+              text
+            </p>
+            <pre id="code">  a
+          b</pre>
+            <input id="field" required value="a &quot;quote&quot; &amp; more">
+            <span>1 &lt; 2</span>
+            <div id="empty"></div>
+          </body>
+        </html>
+        """)
+    }
+    
+    @Test func longTextGetsItsOwnLine() async throws {
+        let text = Array(repeating: "word", count: 20).joined(separator: " ")
+        let browser = try await MockBrowser(html: "<html><head></head><body><p id=\"long\">\(text)</p></body></html>")
+        let window = try await browser.startSession().window
+
+        #expect(try await window.diagnosticSnapshot.contains("""
+            <p id="long">
+              \(text)
+            </p>
+        """))
     }
 
 }
