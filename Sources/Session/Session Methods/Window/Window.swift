@@ -32,6 +32,7 @@ extension Session {
     ///
     /// ### Document
     /// - ``pageSource``
+    /// - ``diagnosticSnapshot``
     /// - ``execute(_:async:)``
     /// - ``execute(_:args:async:)``
     /// - ``screenshot()``

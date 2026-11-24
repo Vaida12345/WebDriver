@@ -44,7 +44,7 @@ extension Session.Window {
             }
         }
         
-        throw WaitingTimeout(duration: timeout, query: nil)
+        throw WaitingTimeout(duration: timeout, query: nil, details: await self.timeoutDetails)
     }
     
 }

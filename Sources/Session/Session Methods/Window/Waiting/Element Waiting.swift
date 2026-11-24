@@ -75,9 +75,9 @@ extension Session.Window {
             }
         }
         
-        let source = try? await self.pageSource
-        
-        throw WaitingTimeout(duration: timeout, query: query, details: source)
+        let snapshot = await self.timeoutDetails
+
+        throw WaitingTimeout(duration: timeout, query: query, details: snapshot)
     }
     
     
@@ -87,6 +87,9 @@ extension Session.Window {
         
         let query: Element.Query?
         
+        /// A trimmed snapshot of the DOM at the time of the timeout.
+        ///
+        /// Contents of `script`, `style`, `noscript`, `svg`, and `template` are replaced with a size marker, comments are removed, and long attribute values are shortened. Falls back to the full page source if the snapshot could not be taken.
         public var details: String?
         
         public var message: String {
