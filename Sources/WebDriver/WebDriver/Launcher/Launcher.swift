@@ -8,7 +8,7 @@
 import Foundation
 
 
-protocol WebDriverLauncher<Driver> {
+protocol WebDriverLauncher<Driver>: Sendable {
     
     var driver: Driver { get }
 

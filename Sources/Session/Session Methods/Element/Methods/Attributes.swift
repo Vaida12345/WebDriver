@@ -103,6 +103,19 @@ extension Element {
     }
     
     
+    /// The computed ARIA role of the element, such as `button` or `link`.
+    ///
+    /// The role is computed by the browser from the `role` attribute and the element's tag, as assistive technologies see it.
+    ///
+    /// ## See Also
+    /// - [W3C WebDriver Specification – Get Computed Role](https://www.w3.org/TR/webdriver2/#get-computed-role)
+    public var role: String {
+        get async throws {
+            try await self.parser(.get, "computedrole", context: .unavailable).decode(String.self, forKey: "value")
+        }
+    }
+    
+    
     /// Load the attribute.
     public func load(_ attribute: LoadableAttribute, at source: LoadSource = .original, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> String {
         let parser = switch source {

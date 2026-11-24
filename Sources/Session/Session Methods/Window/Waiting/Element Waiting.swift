@@ -11,75 +11,134 @@ import Foundation
 
 extension Session.Window {
     
-    public enum ElementWaitCondition {
+    public enum ElementWaitCondition: Sendable {
+        /// The element is in the document.
         case elementPresence
+        
+        /// The element is in the document and enabled.
         case elementEnabled
+        
+        /// The element is in the document and visible, as reported by ``Element/isVisible``.
+        case elementVisible
     }
     
     
+    /// Waits until an element matching `predicate` meets `condition`, and returns it.
+    ///
+    /// - Parameters:
+    ///   - condition: The condition to wait for.
+    ///   - timeout: How long to wait. The element is looked for at least once, even for a zero timeout.
+    ///   - pollingInterval: How long to wait between checks.
+    ///   - predicate: The element to wait for.
+    ///
     /// - throws: On time out, throws ``WaitingTimeout``.
     ///
-    /// - Note: This method cannot be used to find elements inside a shadow content.
+    /// - Note: Elements inside a shadow root are not found. Find them through ``Session/Window/Element/shadowRoot`` instead.
     public func wait(
         until condition: ElementWaitCondition,
         timeout: Duration,
+        pollingInterval: Duration = .milliseconds(200),
         where predicate: @Sendable (Element.LocatorProxy) -> any LocatorQuery,
         fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function
     ) async throws -> Element {
-        try await self.wait(until: condition, timeout: timeout, where: { predicate($0).makeQuery() }, fileID: fileID, line: line, function: function)
+        try await self.wait(until: condition, timeout: timeout, pollingInterval: pollingInterval, where: { predicate($0).makeQuery() }, fileID: fileID, line: line, function: function)
     }
     
     
+    /// Waits until an element matching `predicate` meets `condition`, and returns it.
+    ///
+    /// - Parameters:
+    ///   - condition: The condition to wait for.
+    ///   - timeout: How long to wait. The element is looked for at least once, even for a zero timeout.
+    ///   - pollingInterval: How long to wait between checks.
+    ///   - predicate: The element to wait for.
+    ///
     /// - throws: On time out, throws ``WaitingTimeout``.
     ///
-    /// - Note: This method cannot be used to find elements inside a shadow content.
+    /// - Note: Elements inside a shadow root are not found. Find them through ``Session/Window/Element/shadowRoot`` instead.
     public func wait(
         until condition: ElementWaitCondition,
         timeout: Duration,
+        pollingInterval: Duration = .milliseconds(200),
         where predicate: @Sendable (Element.LocatorProxy) -> Element.Query,
         fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function
     ) async throws -> Element {
-        let waitPeriod: Duration = .seconds(0.2)
-        let clock = ContinuousClock()
-        let deadline = clock.now.advanced(by: timeout)
+        let query = predicate(Element.LocatorProxy())
+        var found: Element?
         
-        @inline(__always)
-        func sleepBeforeRetry() async throws {
-            let remaining = clock.now.duration(to: deadline)
-            guard remaining > .zero else { return }
-            let sleepDuration = remaining < waitPeriod ? remaining : waitPeriod
-            try await clock.sleep(for: sleepDuration)
-        }
-        
-        let proxy = Element.LocatorProxy()
-        let query = predicate(proxy)
-        
-        // `repeat`, so that the element is looked for at least once, even for a zero timeout.
-        repeat {
+        let succeeded = try await poll(timeout: timeout, interval: pollingInterval) {
             do {
                 let element = try await self.findElement(where: predicate, fileID: fileID, line: line, function: function)
-                switch condition {
-                case .elementPresence:
-                    return element
-                case .elementEnabled:
-                    guard try await element.isEnabled else {
-                        try await sleepBeforeRetry()
-                        continue
-                    }
-                    return element
+                let meetsCondition = switch condition {
+                case .elementPresence: true
+                case .elementEnabled: try await element.isEnabled
+                case .elementVisible: try await element.isVisible
                 }
+                found = meetsCondition ? element : nil
+                return meetsCondition
             } catch let error as WebDriverError where error.code == .no_such_element || error.code == .stale_element_reference {
                 // A stale element was replaced between being found and being checked, so it is looked up again.
-                try await sleepBeforeRetry()
-                continue
-            } catch {
-                throw error
+                return false
             }
-        } while clock.now < deadline
+        }
         
-        let snapshot = await self.timeoutDetails
-
-        throw WaitingTimeout(duration: timeout, query: query, details: snapshot)
+        if succeeded, let found {
+            return found
+        }
+        throw WaitingTimeout(duration: timeout, query: query, details: await self.timeoutDetails)
+    }
+    
+    
+    /// Waits until no element matches `predicate`, for example, until a spinner is gone.
+    ///
+    /// - Parameters:
+    ///   - timeout: How long to wait. The elements are looked for at least once, even for a zero timeout.
+    ///   - pollingInterval: How long to wait between checks.
+    ///   - predicate: The elements to wait for to disappear.
+    ///
+    /// - throws: On time out, throws ``WaitingTimeout``.
+    public func waitUntilAbsent(
+        timeout: Duration,
+        pollingInterval: Duration = .milliseconds(200),
+        where predicate: @Sendable (Element.LocatorProxy) -> any LocatorQuery,
+        fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function
+    ) async throws {
+        let query = predicate(Element.LocatorProxy()).makeQuery()
+        
+        let succeeded = try await poll(timeout: timeout, interval: pollingInterval) {
+            try await self.findElements(where: predicate, fileID: fileID, line: line, function: function).isEmpty
+        }
+        
+        guard succeeded else {
+            throw WaitingTimeout(duration: timeout, query: query, details: await self.timeoutDetails)
+        }
+    }
+    
+    
+    /// Waits until `condition` returns `true`.
+    ///
+    /// ```swift
+    /// try await window.wait(timeout: .seconds(5)) {
+    ///     try await window.findElements(where: { $0.tag == "li" }).count >= 10
+    /// }
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - timeout: How long to wait. `condition` is called at least once, even for a zero timeout.
+    ///   - pollingInterval: How long to wait between calls.
+    ///   - condition: The condition to wait for. Errors it throws are rethrown, ending the wait.
+    ///
+    /// - throws: On time out, throws ``WaitingTimeout``.
+    public func wait(
+        timeout: Duration,
+        pollingInterval: Duration = .milliseconds(200),
+        isolation: isolated (any Actor)? = #isolation,
+        until condition: () async throws -> Bool
+    ) async throws {
+        // Runs in the caller's isolation, so that `condition` can use the caller's state.
+        guard try await poll(timeout: timeout, interval: pollingInterval, isolation: isolation, condition) else {
+            throw WaitingTimeout(duration: timeout, query: nil, details: await self.timeoutDetails)
+        }
     }
     
     

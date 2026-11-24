@@ -16,7 +16,7 @@ import WebDriver
 ///
 /// Requests made by a ``startSession()`` session are intercepted by ``MockWebDriverProtocol`` and evaluated against the web view's DOM, so tests exercise the real HTTP and script paths without launching a browser.
 ///
-/// Only the endpoints needed by the tests are implemented: creating and deleting the session, getting and switching the window, finding elements, reading attributes, properties, and the enabled state, executing scripts, and taking screenshots. Other endpoints respond with `unknown command`.
+/// Only the endpoints needed by the tests are implemented: creating and deleting the session, getting and switching the window, finding elements, reading attributes, properties, the enabled and displayed states, and roles, switching to frames, shadow roots, user prompts, actions, sending keys, executing scripts, and taking screenshots. User prompts, actions, and sent keys are recorded rather than performed. Other endpoints respond with `unknown command`.
 @MainActor
 final class MockBrowser {
 
@@ -40,6 +40,27 @@ final class MockBrowser {
 
     /// The number of upcoming element state requests that respond with `stale element reference`, as if the element was replaced after being found.
     var staleStateResponses = 0
+
+    /// The text of the open user prompt, or `nil` when none is open.
+    var alertText: String?
+
+    /// How the last user prompt was closed, `accept` or `dismiss`.
+    private(set) var lastAlertAction: String?
+
+    /// The text last typed into a user prompt.
+    private(set) var promptText: String?
+
+    /// The `actions` of the last Perform Actions request.
+    private(set) var lastActions: [[String : Any]]?
+
+    /// Whether Release Actions was requested after the last Perform Actions request.
+    private(set) var actionsReleased = false
+
+    /// When set, Perform Actions responds with this error, to test that actions are released anyway.
+    var actionsErrorOverride: String?
+
+    /// The `text` of the last Element Send Keys request.
+    private(set) var lastSentKeys: String?
 
     /// The size of the image returned by the viewport screenshot endpoint.
     static let viewportScreenshotSize = (width: 4, height: 3)
@@ -72,7 +93,7 @@ final class MockBrowser {
     /// Handles a WebDriver request, returning the status code and the JSON body.
     func respond(method: String, path: [String], body: [String : Any]) async -> (Int, Data) {
         // Drop the session id, which is always the second component.
-        let route = path.enumerated().filter { $0.offset != 1 }.map { $0.offset == 3 && path.count >= 4 && path[2] == "element" ? "{id}" : $0.element }
+        let route = path.enumerated().filter { $0.offset != 1 }.map { $0.offset == 3 && path.count >= 4 && ["element", "shadow"].contains(path[2]) ? "{id}" : $0.element }
         let find = ["using": body["using"] ?? "", "value": body["value"] ?? ""]
         
         switch (method, route.joined(separator: "/")) {
@@ -89,7 +110,49 @@ final class MockBrowser {
         case ("GET", "session/window"):
             return Self.ok("window")
         case ("POST", "session/window"):
+            // Switching to a window also switches to its top-level document.
+            return await self.evaluate("topLevel", [:])
+        case ("POST", "session/frame"):
+            return await self.evaluate("frame", ["id": body["id"] ?? NSNull()])
+        case ("GET", "session/url"):
+            return await self.evaluate("url", [:])
+        case ("GET", "session/title"):
+            return await self.evaluate("title", [:])
+        case ("GET", "session/alert/text"):
+            guard let alertText else { return Self.noSuchAlert }
+            return Self.ok(alertText)
+        case ("POST", "session/alert/text"):
+            guard self.alertText != nil else { return Self.noSuchAlert }
+            self.promptText = body["text"] as? String
             return Self.ok(NSNull())
+        case ("POST", "session/alert/accept"), ("POST", "session/alert/dismiss"):
+            guard self.alertText != nil else { return Self.noSuchAlert }
+            self.alertText = nil
+            self.lastAlertAction = path.last
+            return Self.ok(NSNull())
+        case ("POST", "session/actions"):
+            self.lastActions = body["actions"] as? [[String : Any]]
+            self.actionsReleased = false
+            if let actionsErrorOverride {
+                return Self.error(400, actionsErrorOverride, "Overridden by MockBrowser")
+            }
+            return Self.ok(NSNull())
+        case ("DELETE", "session/actions"):
+            self.actionsReleased = true
+            return Self.ok(NSNull())
+        case ("POST", "session/element/{id}/value"):
+            self.lastSentKeys = body["text"] as? String
+            return Self.ok(NSNull())
+        case ("GET", "session/element/{id}/displayed"):
+            return await self.evaluate("displayed", ["root": path[3]])
+        case ("GET", "session/element/{id}/computedrole"):
+            return await self.evaluate("role", ["root": path[3]])
+        case ("GET", "session/element/{id}/shadow"):
+            return await self.evaluate("shadow", ["root": path[3]])
+        case ("POST", "session/shadow/{id}/element"):
+            return await self.evaluate("find", find.merging(["shadow": path[3]]) { $1 })
+        case ("POST", "session/shadow/{id}/elements"):
+            return await self.evaluate("findAll", find.merging(["shadow": path[3]]) { $1 })
         case ("POST", "session/element"):
             return await self.evaluate("find", find)
         case ("POST", "session/elements"):
@@ -143,6 +206,10 @@ final class MockBrowser {
         (200, try! JSONSerialization.data(withJSONObject: ["value": value]))
     }
 
+    private static var noSuchAlert: (Int, Data) {
+        Self.error(404, "no such alert", "No user prompt is open")
+    }
+
     private static func error(_ status: Int, _ error: String, _ message: String) -> (Int, Data) {
         (status, try! JSONSerialization.data(withJSONObject: ["value": ["error": error, "message": message, "stacktrace": ""]]))
     }
@@ -150,7 +217,12 @@ final class MockBrowser {
     /// Evaluates `action` with `payload` in the page, mirroring the WebDriver element and script semantics.
     private static let dispatcher = #"""
     const KEY = "element-6066-11e4-a52e-4f735466cecf";
+    const SHADOW_KEY = "shadow-6066-11e4-a52e-4f735466cecf";
     const registry = (window.__mockElements ??= []);
+    // The document and window of the current frame, set by Switch To Frame.
+    const doc = window.__mockDocument ?? document;
+    const win = window.__mockWindow ?? window;
+    const isElement = value => value !== null && typeof value === "object" && value.nodeType === Node.ELEMENT_NODE;
     class Stale extends Error {}
     const ok = value => JSON.stringify({ status: 200, body: { value } });
     const fail = (status, error, message) => JSON.stringify({ status, body: { value: { error, message, stacktrace: "" } } });
@@ -158,6 +230,11 @@ final class MockBrowser {
         let index = registry.indexOf(element);
         if (index < 0) { index = registry.length; registry.push(element); }
         return { [KEY]: "e" + index };
+    };
+    const register = object => {
+        let index = registry.indexOf(object);
+        if (index < 0) { index = registry.length; registry.push(object); }
+        return "e" + index;
     };
     const deref = value => {
         if (Array.isArray(value)) return value.map(deref);
@@ -169,7 +246,7 @@ final class MockBrowser {
         return value;
     };
     const serialize = value => {
-        if (value instanceof Element) return ref(value);
+        if (isElement(value)) return ref(value);
         if (Array.isArray(value)) return value.map(serialize);
         return value === undefined ? null : value;
     };
@@ -178,9 +255,10 @@ final class MockBrowser {
         case "css selector":
             return [...root.querySelectorAll(value)];
         case "tag name":
-            return [...root.getElementsByTagName(value)];
+            // `querySelectorAll`, as shadow roots have no `getElementsByTagName`.
+            return [...root.querySelectorAll(value)];
         case "xpath": {
-            const result = document.evaluate(value, root, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+            const result = (root.ownerDocument ?? root).evaluate(value, root, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
             return Array.from({ length: result.snapshotLength }, (_, i) => result.snapshotItem(i));
         }
         case "link text":
@@ -194,14 +272,40 @@ final class MockBrowser {
         switch (action) {
         case "find":
         case "findAll": {
-            const root = payload.root ? deref({ [KEY]: payload.root }) : document;
+            const root = payload.shadow ? registry[Number(payload.shadow.slice(1))] : payload.root ? deref({ [KEY]: payload.root }) : doc;
             const found = find(root, payload.using, payload.value);
             if (action === "findAll") return ok(found.map(ref));
             if (found.length === 0) return fail(404, "no such element", "Unable to locate element: " + payload.value);
             return ok(ref(found[0]));
         }
         case "execute":
-            return ok(serialize(new Function(payload.script).apply(null, deref(payload.args))));
+            return ok(serialize(new win.Function(payload.script).apply(null, deref(payload.args))));
+        case "topLevel":
+            window.__mockDocument = undefined;
+            window.__mockWindow = undefined;
+            return ok(null);
+        case "frame": {
+            const frame = deref(payload.id);
+            if (!frame.contentDocument) return fail(404, "no such frame", "The element is not a frame");
+            window.__mockDocument = frame.contentDocument;
+            window.__mockWindow = frame.contentWindow;
+            return ok(null);
+        }
+        case "url":
+            return ok(window.location.href);
+        case "title":
+            return ok(doc.title);
+        case "displayed": {
+            const element = deref({ [KEY]: payload.root });
+            return ok(element.getClientRects().length > 0 && getComputedStyle(element).visibility !== "hidden");
+        }
+        case "role":
+            return ok(deref({ [KEY]: payload.root }).getAttribute("role") ?? "");
+        case "shadow": {
+            const shadow = deref({ [KEY]: payload.root }).shadowRoot;
+            if (!shadow) return fail(404, "no such shadow root", "The element does not have a shadow root");
+            return ok({ [SHADOW_KEY]: register(shadow) });
+        }
         case "enabled":
             return ok(!deref({ [KEY]: payload.root }).disabled);
         case "attribute":

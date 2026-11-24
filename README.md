@@ -72,6 +72,61 @@ And boolean operations, including
 - `!`
 
 
+## Beyond the Basics
+
+Dialogs opened by `alert`, `confirm`, or `prompt` are handled through the window.
+```swift
+try await window.wait(until: .alertPresent, timeout: .seconds(5))
+print(try await window.alert.text)
+try await window.alert.accept()
+```
+
+Elements inside an `iframe` are found through the frame's content.
+```swift
+let frame = try await window.findElement(where: { $0.tag == "iframe" })
+let content = window.content(of: frame)
+try await content.findElement(where: { $0.text == "Pay" }).click()
+```
+
+Elements inside a web component are found through its shadow root.
+```swift
+let host = try await window.findElement(where: { $0.tag == "my-component" })
+let button = try await host.shadowRoot.findElement(where: { $0.tag == "button" })
+```
+
+Keyboard and mouse actions are available on elements, and as custom sequences.
+```swift
+try await menu.hover()
+try await field.press(.init("a", modifiers: .command))
+try await card.drag(to: column)
+
+try await window.perform {
+    $0.keyDown(.shift)
+    $0.move(to: last)
+    $0.pointerDown()
+    $0.pointerUp()
+    $0.keyUp(.shift)
+}
+```
+
+
+## Running the Tests
+
+The unit tests run against an in-process mock browser, and need no browser installed.
+```bash
+swift test --skip Integration
+```
+
+The integration tests drive real browsers, and only run when enabled.
+```bash
+GECKO_INTEGRATION=1 swift test --filter "Gecko Integration"
+```
+```bash
+SAFARI_INTEGRATION=1 swift test --filter "Safari Integration"
+```
+The Gecko tests need `geckodriver` and Firefox installed. The Safari tests need remote automation allowed once, with `safaridriver --enable`.
+
+
 ## Getting Started
 
 `WebDriver` uses [Swift Package Manager](https://www.swift.org/documentation/package-manager/) as its build tool. If you want to import in your own project, it's as simple as adding a `dependencies` clause to your `Package.swift`:

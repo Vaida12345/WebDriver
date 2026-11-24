@@ -17,6 +17,7 @@ let package = Package(
         .package(url: "https://github.com/Vaida12345/Essentials.git", from: "1.2.1"),
         .package(url: "https://github.com/Vaida12345/NativeImage.git", from: "1.3.0"),
         .package(url: "https://github.com/Vaida12345/JSONParser.git", from: "1.3.1"),
+        .package(url: "https://github.com/Vaida12345/DetailedDescription.git", from: "2.2.2"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -24,7 +25,7 @@ let package = Package(
         .target(
             name: "WebDriver",
             dependencies: [
-                "FinderItem", "Essentials", "NativeImage", "JSONParser"
+                "FinderItem", "Essentials", "NativeImage", "JSONParser", "DetailedDescription"
             ],
             path: "Sources"
         ),

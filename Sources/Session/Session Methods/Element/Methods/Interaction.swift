@@ -5,6 +5,8 @@
 //  Created by Vaida on 3/7/25.
 //
 
+import Foundation
+
 
 extension Element {
     
@@ -58,6 +60,16 @@ extension Element {
     public func write(_ text: String, terminator: String = "\u{E007}", fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
         let text = text + terminator
         try await self.parser(.post, "value", json: ["text" : text, "value" : Array(text).map({ String($0) })], context: SwiftContext(fileID: fileID, line: line, function: function))
+    }
+    
+    /// Selects `file` in an `<input type="file">` element, as if the user chose it.
+    ///
+    /// Firefox supports this. Other drivers vary.
+    ///
+    /// - Parameters:
+    ///   - file: The local file to choose.
+    public func upload(_ file: URL, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws {
+        try await self.parser(.post, "value", json: ["text" : file.path(percentEncoded: false)], context: SwiftContext(fileID: fileID, line: line, function: function))
     }
     
     /// Scrolls the element into view.

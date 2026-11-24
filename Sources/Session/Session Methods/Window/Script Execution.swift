@@ -100,4 +100,16 @@ extension Session.Window {
             fileID: fileID, line: line, function: function
         )
     }
+    
+    /// Executes the given command, and decodes the value it returns as `type`.
+    ///
+    /// ```swift
+    /// let title = try await window.execute("return document.title", as: String.self)
+    /// ```
+    ///
+    /// > First Responder:
+    /// > The first responder is switched to `self`.
+    public func execute<T: Decodable>(_ command: ScriptExecutionInterpolation, as type: T.Type, async: Bool = false, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> T {
+        try await self.execute(command.command, args: command.args, as: type, async: async, fileID: fileID, line: line, function: function)
+    }
 }

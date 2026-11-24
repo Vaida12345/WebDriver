@@ -35,6 +35,9 @@ struct RegressionTests {
         <label id="label" for="field" class="one two" tabindex="3">Name</label>
         <input id="field" disabled>
         <input id="enabled">
+        <div id="hidden" style="display: none">Hidden</div>
+        <span id="role" role="alert">Role</span>
+        <input id="file" type="file">
     </body>
     </html>
     """
@@ -170,4 +173,86 @@ struct RegressionTests {
         #expect(try await window.execute("return \(raw: "1 + 1") + \(3)").decode(Int.self, forKey: "value") == 5)
     }
 
+    // MARK: - Waiting conditions
+    
+    @Test func waitForVisibleElement() async throws {
+        let browser = try await MockBrowser(html: Self.html)
+        let window = try await browser.startSession().window
+        
+        #expect(try await window.wait(until: .elementVisible, timeout: .zero, where: { $0.id == "role" }).load(.id) == "role")
+        await #expect(throws: Session.Window.WaitingTimeout.self) {
+            try await window.wait(until: .elementVisible, timeout: .zero, where: { $0.id == "hidden" })
+        }
+    }
+    
+    @Test func waitUntilAbsent() async throws {
+        let browser = try await MockBrowser(html: Self.html)
+        let window = try await browser.startSession().window
+        
+        try await window.waitUntilAbsent(timeout: .zero, where: { $0.id == "missing" })
+        await #expect(throws: Session.Window.WaitingTimeout.self) {
+            try await window.waitUntilAbsent(timeout: .zero, where: { $0.id == "hidden" })
+        }
+    }
+    
+    @Test func waitForURLAndTitle() async throws {
+        let browser = try await MockBrowser(html: "<html><head><title>Checkout</title></head><body></body></html>")
+        let window = try await browser.startSession().window
+        
+        try await window.wait(until: .titleContains("Check"), timeout: .zero)
+        try await window.wait(until: .urlContains("about:"), timeout: .zero)
+        await #expect(throws: Session.Window.WaitingTimeout.self) {
+            try await window.wait(until: .titleContains("Receipt"), timeout: .zero)
+        }
+    }
+    
+    @Test func waitForCondition() async throws {
+        let browser = try await MockBrowser(html: Self.html)
+        let window = try await browser.startSession().window
+        
+        var calls = 0
+        let start = ContinuousClock.now
+        try await window.wait(timeout: .seconds(5), pollingInterval: .milliseconds(50)) {
+            calls += 1
+            return calls == 3
+        }
+        #expect(calls == 3)
+        #expect(ContinuousClock.now - start >= .milliseconds(100))
+        
+        calls = 0
+        await #expect(throws: Session.Window.WaitingTimeout.self) {
+            try await window.wait(timeout: .zero) {
+                calls += 1
+                return false
+            }
+        }
+        #expect(calls == 1)
+    }
+    
+    // MARK: - Typed scripts, role, and upload
+    
+    @Test func typedExecute() async throws {
+        let browser = try await MockBrowser(html: Self.html)
+        let window = try await browser.startSession().window
+        
+        #expect(try await window.execute("return 1 + \(2)", as: Int.self) == 3)
+        #expect(try await window.execute("return [\("a"), \("b")]", as: [String].self) == ["a", "b"])
+    }
+    
+    @Test func role() async throws {
+        let browser = try await MockBrowser(html: Self.html)
+        let window = try await browser.startSession().window
+        
+        #expect(try await window.findElement(where: { $0.id == "role" }).role == "alert")
+    }
+    
+    @Test func upload() async throws {
+        let browser = try await MockBrowser(html: Self.html)
+        let window = try await browser.startSession().window
+        
+        let input = try await window.findElement(where: { $0.id == "file" })
+        try await input.upload(URL(filePath: "/tmp/my file.txt"))
+        #expect(browser.lastSentKeys == "/tmp/my file.txt")
+    }
+    
 }

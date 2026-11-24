@@ -48,5 +48,13 @@ extension Session.Window {
         )
         return try JSONParser(data: data)
     }
+    
+    /// Executes the given command, and decodes the value it returns as `type`.
+    ///
+    /// > First Responder:
+    /// > The first responder is switched to `self`.
+    public func execute<T: Decodable>(_ command: String, args: [Any], as type: T.Type, async: Bool = false, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> T {
+        try await self.execute(command, args: args, async: async, fileID: fileID, line: line, function: function).decode(T.self, forKey: "value")
+    }
 
 }

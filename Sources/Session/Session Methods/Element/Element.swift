@@ -20,10 +20,10 @@ extension Session.Window {
     ///
     /// ## Topics
     /// ### Locators
-    /// ### Locators
     /// - ``findElement(where:)-8rmlq``
     /// - ``findElements(where:)-794xe``
     /// - <doc:Locator>
+    /// - ``shadowRoot``
     ///
     /// ### State
     /// - ``isSelected``
@@ -33,6 +33,7 @@ extension Session.Window {
     /// - ``tag``
     /// - ``text``
     /// - ``label``
+    /// - ``role``
     /// - ``frame``
     /// - ``summary``
     /// - ``load(_:at:)-43sms``
@@ -41,6 +42,14 @@ extension Session.Window {
     /// - ``click()``
     /// - ``write(_:terminator:)``
     /// - ``clear()``
+    /// - ``press(_:fileID:line:function:)``
+    /// - ``upload(_:fileID:line:function:)``
+    ///
+    /// ### Mouse
+    /// - ``hover(fileID:line:function:)``
+    /// - ``doubleClick(fileID:line:function:)``
+    /// - ``rightClick(fileID:line:function:)``
+    /// - ``drag(to:duration:fileID:line:function:)``
     ///
     /// ### Render
     /// - ``screenshot()``

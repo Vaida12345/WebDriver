@@ -21,7 +21,7 @@ public enum WebDriver {
 
 
 /// The actual protocol that all drivers conform.
-public protocol WebDriverProtocol {
+public protocol WebDriverProtocol: Sendable {
     
     /// The capabilities required.
     var capabilities: [String : Any] { get }

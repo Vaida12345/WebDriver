@@ -9,6 +9,7 @@ import Foundation
 import Essentials
 import OSLog
 import JSONParser
+import os
 
 
 /// A connection session.
@@ -16,6 +17,8 @@ import JSONParser
 /// All interactions with the browser it controls are communicated via a session.
 ///
 /// To obtain a session, call the ``WebDriver/WebDriverProtocol/startSession()``. After you are finished with a session, close the session using ``close()``.
+///
+/// A session is a reference type: copies share one connection to the driver. The connection is invalidated when the session is closed, or when the last reference to it goes away.
 ///
 /// ## Topics
 /// ### Swift Properties
@@ -49,7 +52,7 @@ import JSONParser
 /// - ``Status``
 /// - ``SessionError``
 /// - ``Timeout``
-public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertible {
+public final class Session: Sendable, Identifiable, CustomStringConvertible {
     
     /// The launcher that launched the backend for this session.
     ///
@@ -59,7 +62,12 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
     /// The shared url session for this instance. All connection will be transmitted through this session.
     internal let session: URLSession
     
-    public private(set) var identity: Identity
+    /// The identity, whose id is set once the driver has created the session.
+    private let identityStorage: OSAllocatedUnfairLock<Identity>
+    
+    public var identity: Identity {
+        self.identityStorage.withLock { $0 }
+    }
     
     /// The session ID identified by the backend.
     public var id: String {
@@ -74,7 +82,7 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
     
     init(launcher: any WebDriverLauncher, context: SwiftContext, invoker: StaticString, urlSessionConfiguration: URLSessionConfiguration = .ephemeral) async throws {
         self.session = URLSession(configuration: urlSessionConfiguration)
-        self.identity = Identity(id: "", creation: context)
+        self.identityStorage = OSAllocatedUnfairLock(initialState: Identity(id: "", creation: context))
         self.launcher = launcher
         
         let driver = launcher.driver
@@ -82,8 +90,13 @@ public struct Session: @unchecked Sendable, Identifiable, CustomStringConvertibl
         let results = try await self.data(.post, "session", json: ["capabilities": ["alwaysMatch" : driver.capabilities]],
                                           context: context, origin: .session(self), invoker: invoker)
         let parser = try JSONParser(data: results.0)
-        self.identity.id = try parser.decode(JSONParser.self, forKey: "value").decode(String.self, forKey: "sessionId")
-        launcher.attach(sessionID: self.identity.id)
+        let id = try parser.decode(JSONParser.self, forKey: "value").decode(String.self, forKey: "sessionId")
+        self.identityStorage.withLock { $0.id = id }
+        launcher.attach(sessionID: id)
+    }
+    
+    deinit {
+        self.session.finishTasksAndInvalidate()
     }
     
     

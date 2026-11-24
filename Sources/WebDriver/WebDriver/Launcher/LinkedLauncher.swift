@@ -11,11 +11,11 @@ import Foundation
 /// An existing launcher.
 final class LinkedLauncher<Driver: WebDriverProtocol>: WebDriverLauncher {
 
-    public var driver: Driver
+    public let driver: Driver
 
-    public var host: String
+    public let host: String
 
-    public var port: UInt16
+    public let port: UInt16
 
     public func attach(sessionID: String) {
 

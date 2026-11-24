@@ -13,7 +13,7 @@ extension Element {
     
     /// Find the element in the current element.
     ///
-    /// - Note: This method cannot be used to find elements inside a shadow content.
+    /// - Note: Elements inside a shadow root are not found. Find them through ``Session/Window/Element/shadowRoot`` instead.
     ///
     /// - Important: Attribute queries match the HTML attributes only, as read with ``LoadSource/original``, not properties changed by user interaction or script, such as typed text. See ``LoadSource``.
     public func findElement(where predicate: @Sendable (Session.Window.Element.LocatorProxy) -> any LocatorQuery, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> Session.Window.Element {
@@ -24,7 +24,7 @@ extension Element {
     ///
     /// Only descendants of this element are searched. XPath queries are made relative to this element, see ``Session/Window/Element/Query/relativeToContextNode()``.
     ///
-    /// - Note: This method cannot be used to find elements inside a shadow content.
+    /// - Note: Elements inside a shadow root are not found. Find them through ``Session/Window/Element/shadowRoot`` instead.
     ///
     /// - Important: Attribute queries match the HTML attributes only, as read with ``LoadSource/original``, not properties changed by user interaction or script, such as typed text. See ``LoadSource``.
     public func findElement(where predicate: @Sendable (Session.Window.Element.LocatorProxy) -> Session.Window.Element.Query, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> Session.Window.Element {
@@ -82,7 +82,7 @@ extension Element {
     
     /// Find the elements in the current element.
     ///
-    /// - Note: This method cannot be used to find elements inside a shadow content.
+    /// - Note: Elements inside a shadow root are not found. Find them through ``Session/Window/Element/shadowRoot`` instead.
     ///
     /// - Important: Attribute queries match the HTML attributes only, as read with ``LoadSource/original``, not properties changed by user interaction or script, such as typed text. See ``LoadSource``.
     public func findElements(where predicate: @Sendable (Session.Window.Element.LocatorProxy) -> any LocatorQuery, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> [Session.Window.Element] {
@@ -93,7 +93,7 @@ extension Element {
     ///
     /// Only descendants of this element are searched. XPath queries are made relative to this element, see ``Session/Window/Element/Query/relativeToContextNode()``.
     ///
-    /// - Note: This method cannot be used to find elements inside a shadow content.
+    /// - Note: Elements inside a shadow root are not found. Find them through ``Session/Window/Element/shadowRoot`` instead.
     ///
     /// - Important: Attribute queries match the HTML attributes only, as read with ``LoadSource/original``, not properties changed by user interaction or script, such as typed text. See ``LoadSource``.
     public func findElements(where predicate: @Sendable (Session.Window.Element.LocatorProxy) -> Session.Window.Element.Query, fileID: StaticString = #fileID, line: Int = #line, function: StaticString = #function) async throws -> [Session.Window.Element] {
