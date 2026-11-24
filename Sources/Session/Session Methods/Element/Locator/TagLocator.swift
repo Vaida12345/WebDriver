@@ -15,6 +15,11 @@ extension Session.Window.Element {
         public static func == (_ lhs: TagLocator, _ rhs: HTMLTag) -> any LocatorQuery {
             TagQuery(value: rhs.rawValue)
         }
+
+        /// Matches elements whose tag name is not `rhs`, using the XPath `not(self::tag)`.
+        public static func != (_ lhs: TagLocator, _ rhs: HTMLTag) -> any LocatorQuery {
+            NegateQuery(body: TagQuery(value: rhs.rawValue))
+        }
         
     }
     

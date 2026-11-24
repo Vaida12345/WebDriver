@@ -19,15 +19,21 @@ It supports all common attributes, including
 - `aria-label` (`ariaLabel`) and `role`
 - any attribute, using `attribute(_:)`, such as `$0.attribute("data-testid")`
 - text: `text` (own text only), `textContent` (including descendants), and `normalizedTextContent` (including descendants, with whitespace collapsed)
-- `classes`, for matching whole class names
+- `classes`, for matching whole class names, using `contains(_:)` or `contains(all:)`
+- `label`, the text of the `<label>` associated with a form field
+- `hrefText`, the text of a link, which can also be combined with other queries
 - ...
 
 functions including
-- `contains`, optionally case-insensitive using `contains(_:caseInsensitive:)`
-- `hasPrefix`
-- `hasSuffix`
+- `contains`, `hasPrefix`, `hasSuffix`, and `equals`, each optionally case-insensitive, such as `contains(_:caseInsensitive:)`
 - `==`
-- `!=`
+- `!=`, including on tags, such as `$0.tag != "div"`
+- `exists`, for attributes that are present, such as `$0.disabled.exists`
+- `isEmpty`, for text that is empty or only contains whitespace
+
+relations, including
+- `has { … }`, for elements with a matching descendant
+- `follows { … }`, for elements whose preceding sibling matches
 
 And boolean operations, including
 - `&&`

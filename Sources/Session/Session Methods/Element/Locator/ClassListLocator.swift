@@ -21,7 +21,20 @@ extension Session.Window.Element {
         ///
         /// - Parameter className: A single class name, without whitespace.
         public func contains(_ className: String) -> any LocatorQuery {
-            AttributeQuery.containsWord(locator: AttributeLocator(name: "class"), value: className)
+            AttributeQuery(locator: AttributeLocator(name: "class"), operation: .containsWord, value: className)
+        }
+
+        /// Matches elements that have all of `classNames` as their classes, in any order.
+        ///
+        /// This is equivalent to joining ``contains(_:)`` for each class name using `&&`.
+        ///
+        /// - Parameter classNames: The class names, each without whitespace.
+        ///
+        /// - Precondition: `classNames` is not empty.
+        public func contains(all classNames: [String]) -> any LocatorQuery {
+            precondition(!classNames.isEmpty, "At least one class name is required.")
+            guard classNames.count > 1 else { return self.contains(classNames[0]) }
+            return ConjunctionQuery(body: classNames.map(self.contains))
         }
 
     }

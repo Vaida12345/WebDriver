@@ -26,5 +26,10 @@ struct TagQuery: LocatorQuery {
     var cssDescription: String? {
         nil
     }
+
+    /// The tag as a test on the context node, `self::tag`.
+    var xpathPredicate: String {
+        "self::\(self.value)"
+    }
     
 }

@@ -41,5 +41,9 @@ struct DisjunctionQuery: LocatorQuery {
             return "(" + body.map(\.description).joined(separator: " or ") + ")"
         }
     }
+
+    var xpathPredicate: String {
+        "(" + body.map(\.xpathPredicate).joined(separator: " or ") + ")"
+    }
     
 }

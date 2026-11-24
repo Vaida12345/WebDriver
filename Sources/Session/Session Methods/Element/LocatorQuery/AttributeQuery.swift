@@ -6,61 +6,62 @@
 //
 
 
-enum AttributeQuery: LocatorQuery {
+/// A comparison on an attribute, rendered as a CSS attribute selector when possible, and as XPath otherwise.
+struct AttributeQuery: LocatorQuery {
 
-    case exact(locator: Element.AttributeLocator, value: String)
-    case contains(locator: Element.AttributeLocator, value: String, caseInsensitive: Bool)
-    case hasPrefix(locator: Element.AttributeLocator, value: String)
-    case hasSuffix(locator: Element.AttributeLocator, value: String)
-    /// The attribute, as a whitespace-separated list, contains `value` as one of its words.
-    case containsWord(locator: Element.AttributeLocator, value: String)
+    let locator: Element.AttributeLocator
+    let operation: XPathQuery.Operation
+    let value: String
+    let caseInsensitive: Bool
 
-    func makeQuery() -> Element.Query {
-        return .init(locator: .css, value: self.cssDescription!)
+    /// Creates a query that compares the attribute against `value` using `operation`.
+    init(locator: Element.AttributeLocator, operation: XPathQuery.Operation, value: String = "", caseInsensitive: Bool = false) {
+        self.locator = locator
+        self.operation = operation
+        self.value = value
+        self.caseInsensitive = caseInsensitive
     }
 
-    /// The equivalent XPath query, used when combined with queries that CSS cannot express.
-    func makeXPathQuery() -> XPathQuery {
-        switch self {
-        case .exact(let locator, let value):
-            XPathQuery(operation: .equals, attribute: .property(locator.name), value: value)
-        case .contains(let locator, let value, let caseInsensitive):
-            XPathQuery(operation: .contains, attribute: .property(locator.name), value: value, caseInsensitive: caseInsensitive)
-        case .hasPrefix(let locator, let value):
-            XPathQuery(operation: .hasPrefix, attribute: .property(locator.name), value: value)
-        case .hasSuffix(let locator, let value):
-            XPathQuery(operation: .hasSuffix, attribute: .property(locator.name), value: value)
-        case .containsWord(let locator, let value):
-            XPathQuery(operation: .containsWord, attribute: .property(locator.name), value: value)
+    func makeQuery() -> Element.Query {
+        if let cssDescription {
+            return .init(locator: .css, value: cssDescription)
+        } else {
+            return .init(locator: .xpath, value: "//*[\(self.description)]")
         }
+    }
+
+    /// The equivalent XPath query, used when CSS cannot express it, or when combined with queries that CSS cannot express.
+    func makeXPathQuery() -> XPathQuery {
+        XPathQuery(operation: operation, attribute: .property(locator.name), value: value, caseInsensitive: caseInsensitive)
     }
 
     var description: String {
         self.makeXPathQuery().description
     }
 
+    var xpathPredicate: String {
+        self.description
+    }
+
     var containsTag: Bool {
         false
     }
 
-    /// The CSS attribute selector, with the value escaped as a CSS string.
+    /// The CSS attribute selector, with the value escaped as a CSS string, or `nil` if CSS cannot express the operation.
     var cssDescription: String? {
-        switch self {
-        case let .exact(locator, value):
-            return "[\(locator.name)=\(AttributeQuery.literal(value))]"
-
-        case let .contains(locator, value, caseInsensitive):
-            return "[\(locator.name)*=\(AttributeQuery.literal(value))\(caseInsensitive ? " i" : "")]"
-
-        case let .hasPrefix(locator, value):
-            return "[\(locator.name)^=\(AttributeQuery.literal(value))]"
-
-        case let .hasSuffix(locator, value):
-            return "[\(locator.name)$=\(AttributeQuery.literal(value))]"
-
-        case let .containsWord(locator, value):
-            return "[\(locator.name)~=\(AttributeQuery.literal(value))]"
+        let symbol: String
+        switch operation {
+        case .equals: symbol = "="
+        case .contains: symbol = "*="
+        case .hasPrefix: symbol = "^="
+        case .hasSuffix: symbol = "$="
+        case .containsWord: symbol = "~="
+        case .exists: return "[\(locator.name)]"
+        case .notEquals, .isEmpty: return nil
         }
+
+        let flag = caseInsensitive && operation.supportsCaseFolding ? " i" : ""
+        return "[\(locator.name)\(symbol)\(AttributeQuery.literal(value))\(flag)]"
     }
 
     /// Returns `string` as a double-quoted CSS string literal.
